@@ -1,74 +1,72 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Multi‑Subdomain Auto Loader</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding:20px; }
-    .loading { font-size:18px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop Loader</title>
+<style>
+  body { font-family: Arial; padding:20px; }
+  .card { border:1px solid #ddd;padding:15px;margin:10px;border-radius:10px; }
+  img { width:100%; border-radius:10px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-<div id="app" class="loading">Loading shop...</div>
+
+<h2 id="shopName">Loading shop...</h2>
+<div id="productList"></div>
+
 <script>
-// ==============================
-// CONFIG
-// ==============================
-const BASE_REPO = "https://sheetshopid.github.io/Source"; // ganti sesuai repository kamu
-
-// ==============================
-// AMBIL SUBDOMAIN
-// ==============================
+// 1. Ambil subdomain
 const host = window.location.hostname;
-let shopID = host.split(".")[0];
-if (shopID === "www" || shopID === "") shopID = "default";
+const shopId = host.split(".")[0];
 
-// ==============================
-// URL CONFIG PER TOKO
-// ==============================
-const CONFIG_URL = `${BASE_REPO}/shop/${shopID}/config.json`;
+// 2. URL Firebase (ganti ini)
+const FIREBASE_URL = "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops.json";
 
-// ==============================
-// LOAD CONFIG TOKO
-// ==============================
-async function loadShop() {
-  try {
-    const res = await fetch(CONFIG_URL);
-    if (!res.ok) throw new Error("Config tidak ditemukan");
-
-    const data = await res.json();
-    renderShop(data);
-  } catch (e) {
-    document.getElementById("app").innerHTML = `Toko <b>${shopID}</b> tidak ditemukan.`;
-  }
+async function getShop() {
+  const res = await fetch(FIREBASE_URL);
+  const data = await res.json();
+  return data.shops?.[shopId] || null;
 }
 
-// ==============================
-// RENDER TOKO
-// ==============================
-function renderShop(cfg) {
-  document.getElementById("app").innerHTML = `
-    <h2>${cfg.name}</h2>
-    <p>${cfg.description}</p>
-    <img src="${cfg.logo}" width="150" />
-    <hr>
-    <h3>Produk:</h3>
-    <div id="products"></div>
-  `;
+// 3. Ambil CSV
+async function getProducts(sheetUrl) {
+  const res = await fetch(sheetUrl);
+  const text = await res.text();
+  return Papa.parse(text, { header: true }).data;
+}
 
-  cfg.products.forEach(p => {
-    const el = document.createElement("div");
-    el.innerHTML = `
-      <b>${p.name}</b><br>
-      Harga: ${p.price}<br>
-      <img src="${p.img}" width="100"><br><br>
+// 4. Render
+function renderProducts(list) {
+  const container = document.getElementById("productList");
+  container.innerHTML = "";
+
+  list.forEach(p => {
+    container.innerHTML += `
+      <div class="card">
+        <img src="${p.Img1 || ''}">
+        <h3>${p.Name}</h3>
+        <p>${p.Price}</p>
+      </div>
     `;
-    document.getElementById("products").appendChild(el);
   });
 }
 
-loadShop();
+// 5. Init
+(async () => {
+  const shop = await getShop();
+  if (!shop) {
+    document.body.innerHTML = "<h1>Toko tidak ditemukan</h1>";
+    return;
+  }
+
+  document.getElementById("shopName").textContent = shop.name;
+
+  const products = await getProducts(shop.sheetUrl);
+  renderProducts(products);
+})();
 </script>
+
 </body>
 </html>
