@@ -1,19 +1,74 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <title>Multi Subdomain Shop</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Multi‑Subdomain Auto Loader</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; }
+    .loading { font-size:18px; }
+  </style>
 </head>
 <body>
-  <div id="loader">Loading store...</div>
-  <header>
-    <h1 id="shopName"></h1>
-    <p id="shopDesc"></p>
-  </header>
-  <main id="productList"></main>
-  <script src="app.js"></script>
+<div id="app" class="loading">Loading shop...</div>
+<script>
+// ==============================
+// CONFIG
+// ==============================
+const BASE_REPO = "https://sheetshopid.github.io/Source"; // ganti sesuai repository kamu
+
+// ==============================
+// AMBIL SUBDOMAIN
+// ==============================
+const host = window.location.hostname;
+let shopID = host.split(".")[0];
+if (shopID === "www" || shopID === "") shopID = "default";
+
+// ==============================
+// URL CONFIG PER TOKO
+// ==============================
+const CONFIG_URL = `${BASE_REPO}/shop/${shopID}/config.json`;
+
+// ==============================
+// LOAD CONFIG TOKO
+// ==============================
+async function loadShop() {
+  try {
+    const res = await fetch(CONFIG_URL);
+    if (!res.ok) throw new Error("Config tidak ditemukan");
+
+    const data = await res.json();
+    renderShop(data);
+  } catch (e) {
+    document.getElementById("app").innerHTML = `Toko <b>${shopID}</b> tidak ditemukan.`;
+  }
+}
+
+// ==============================
+// RENDER TOKO
+// ==============================
+function renderShop(cfg) {
+  document.getElementById("app").innerHTML = `
+    <h2>${cfg.name}</h2>
+    <p>${cfg.description}</p>
+    <img src="${cfg.logo}" width="150" />
+    <hr>
+    <h3>Produk:</h3>
+    <div id="products"></div>
+  `;
+
+  cfg.products.forEach(p => {
+    const el = document.createElement("div");
+    el.innerHTML = `
+      <b>${p.name}</b><br>
+      Harga: ${p.price}<br>
+      <img src="${p.img}" width="100"><br><br>
+    `;
+    document.getElementById("products").appendChild(el);
+  });
+}
+
+loadShop();
+</script>
 </body>
 </html>
