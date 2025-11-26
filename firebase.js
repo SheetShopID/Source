@@ -2,14 +2,15 @@ import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DB,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-};
+    apiKey: "AIzaSyDzot0huXNIhvSaysihxW0rKvBoG0mTcfA",
+    authDomain: "tokoinstan-3e6d5.firebaseapp.com",
+    databaseURL: "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com",
+    projectId: "tokoinstan-3e6d5",
+    storageBucket: "tokoinstan-3e6d5.firebasestorage.app",
+    messagingSenderId: "403378868016",
+    appId: "1:403378868016:web:60202e74a59c4a1fa842f5",
+    measurementId: "G-S3GS8B4JQP"
+  };
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
