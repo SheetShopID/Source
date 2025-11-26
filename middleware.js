@@ -3,19 +3,18 @@ import { NextResponse } from "next/server";
 export function middleware(req) {
   const host = req.headers.get("host") || "";
   const url = req.nextUrl;
-
   const mainDomain = "tokoinstan.online";
 
-  // Jika domain utama → lanjut normal
+  // if request is for main domain or vercel preview, continue normally
   if (host === mainDomain || host.endsWith(".vercel.app")) {
     return NextResponse.next();
   }
 
-  // Ambil subdomain (tokoA, tokoB, dll)
-  const shop = host.split(".")[0];
+  // take the left-most label as shop slug
+  const parts = host.split(".");
+  const shop = parts[0];
 
-  // Rewrite ke folder toko
+  // rewrite to internal shop route
   url.pathname = `/_shop/${shop}`;
-
   return NextResponse.rewrite(url);
 }
