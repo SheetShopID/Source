@@ -1,1 +1,5 @@
-module.exports = { reactStrictMode: true };
+module.exports = {
+  experimental: {
+    serverActions: true
+  }
+};
