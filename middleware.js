@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
+  const url = req.nextUrl;
   const host = req.headers.get("host") || "";
-  
-  // contoh host: nama.tokoinstan.online
-  const shop = host.split(".")[0];
 
-  // abaikan domain utama
+  const parts = host.split(".");
+  const shop = parts[0];
+
+  // Jika domain utama → tampilkan landing (app/page.jsx)
   if (shop === "tokoinstan" || shop === "www") {
     return NextResponse.next();
   }
 
-  const res = NextResponse.next();
-  res.headers.set("x-shop-id", shop);
+  // Rewrite subdomain ke dynamic route:
+  // bogor.tokoinstan.online → /__shop/bogor
+  url.pathname = `/__shop/${shop}`;
 
-  return res;
+  return NextResponse.rewrite(url);
 }
