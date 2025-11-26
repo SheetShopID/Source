@@ -10,14 +10,17 @@ export default function Shop({ params }) {
 
   useEffect(() => {
     async function fetchShop() {
-      const snap = await get(ref(db, "shops/" + params.shop));
-
-      if (!snap.exists()) {
+      try {
+        const snap = await get(ref(db, "shops/" + params.shop));
+        if (!snap.exists()) {
+          setNone(true);
+          return;
+        }
+        setData(snap.val());
+      } catch (e) {
+        console.error(e);
         setNone(true);
-        return;
       }
-
-      setData(snap.val());
     }
     fetchShop();
   }, [params.shop]);
