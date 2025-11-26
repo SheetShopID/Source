@@ -1,21 +1,15 @@
 {
-  "name": "sheetshop_vercel",
+  "name": "tokoinstan-multi-shop",
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
-	  "dev": "next dev",
-	  "build": "next build",
-	  "start": "next start"
-	},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
-    "firebase": "^12.6.0",
-    "next": "^14.2.33",
-    "papaparse": "^5.5.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "firebase": "10.7.0",
+    "next": "14.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }
