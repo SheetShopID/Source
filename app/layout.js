@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
           margin: 0,
           padding: 0,
           fontFamily: "Inter, sans-serif",
-          background: "#f5f5f5"
+          background: "#f5f5f5",
         }}
       >
         {children}
