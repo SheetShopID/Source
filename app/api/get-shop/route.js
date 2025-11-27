@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { db } from "@/firebase/client";
-import { ref, get } from "firebase/database";
 
 export async function GET(req) {
   try {
@@ -11,15 +9,27 @@ export async function GET(req) {
       return NextResponse.json({ error: "No shop param" }, { status: 400 });
     }
 
-    const shopRef = ref(db, `shops/${shop}`);
-    const snap = await get(shopRef);
+    // URL Firebase Realtime Database JSON
+    const url = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${shop}.json`;
 
-    if (!snap.exists()) {
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      return NextResponse.json({ error: "Firebase error" }, { status: 500 });
+    }
+
+    const data = await res.json();
+
+    if (!data || Object.keys(data).length === 0) {
       return NextResponse.json({ error: "Shop not found" }, { status: 404 });
     }
 
-    return NextResponse.json(snap.val());
+    return NextResponse.json(data, { status: 200 });
+
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json(
+      { error: e.message },
+      { status: 500 }
+    );
   }
 }
