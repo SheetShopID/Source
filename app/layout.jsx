@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "TokoInstan",
-  description: "Platform toko otomatis Google Sheet",
+  title: "Tokoinstan",
+  description: "Multi shop",
 };
 
 export default function RootLayout({ children }) {
