@@ -36,6 +36,7 @@ export default function ShopPage({ shop }) {
     <div style={{ padding: 20 }}>
       <h1>{data.name}</h1>
       <p>{data.desc}</p>
+      <p>{data.wa}</p>
 
       <h3>Produk:</h3>
       <pre>{JSON.stringify(data.products, null, 2)}</pre>
