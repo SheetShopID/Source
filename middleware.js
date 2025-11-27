@@ -5,6 +5,7 @@ export function middleware(req) {
   const parts = host.split(".");
   const sub = parts[0];
 
+  // Jika domain utama → tampilkan homepage
   if (sub === "tokoinstan" || sub === "www") {
     return NextResponse.next();
   }
@@ -13,3 +14,7 @@ export function middleware(req) {
   res.headers.set("x-shop-id", sub);
   return res;
 }
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
