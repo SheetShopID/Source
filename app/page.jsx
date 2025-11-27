@@ -1,3 +1,4 @@
+"use client";
 import { headers } from "next/headers";
 import ShopPage from "@/components/ShopPage";
 
