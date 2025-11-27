@@ -1,20 +1,26 @@
+// /middleware.js
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
+  const url = req.nextUrl;
   const host = req.headers.get("host") || "";
+  
+  // domain utama = tokoinstan.online
+  const rootDomain = "tokoinstan.online";
 
-  // subdomain = bagian sebelum domain utama
-  const parts = host.split(".");
-  const sub = parts[0];
+  // pastikan host mengandung subdomain
+  const isSubdomain = host.endsWith(rootDomain) && host !== rootDomain;
 
-  // subdomain utama, tampilkan landing
-  if (sub === "tokoinstan" || sub === "www") {
-    return NextResponse.next();
+  if (isSubdomain) {
+    const shop = host.replace("." + rootDomain, ""); // ambil subdomain
+
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-shop", shop);
+
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 
-  // Kirim subdomain ke Next.js (header)
-  const res = NextResponse.next();
-  res.headers.set("x-shop-id", sub);
-
-  return res;
+  return NextResponse.next();
 }
