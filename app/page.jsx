@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { headers } from "next/headers";
 import ShopPage from "@/components/ShopPage";
 
@@ -11,7 +10,8 @@ export default function Home() {
     return (
       <div style={{ padding: 20 }}>
         <h1>Selamat datang di TokoInstan</h1>
-        <p>Gunakan subdomain seperti jastipbogor.tokoinstan.online</p>
+        <p>Gunakan subdomain seperti:</p>
+        <b>jastip.tokoinstan.online</b>
       </div>
     );
   }
