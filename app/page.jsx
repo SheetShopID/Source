@@ -1,5 +1,3 @@
-"use client";
-
 import { headers } from "next/headers";
 import ShopPage from "@/components/ShopPage";
 
@@ -10,8 +8,7 @@ export default function Home() {
     return (
       <div style={{ padding: 20 }}>
         <h1>Selamat datang di TokoInstan</h1>
-        <p>Gunakan subdomain seperti:</p>
-        <b>jastip.tokoinstan.online</b>
+        <p>Gunakan subdomain seperti jastip.tokoinstan.online</p>
       </div>
     );
   }
