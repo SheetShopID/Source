@@ -1,52 +1,57 @@
-import { headers } from "next/headers";
+// app/page.jsx
+"use client";
+
+import { useEffect, useState } from "react";
 import { db } from "@/firebase/client";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
-export default async function Page() {
-  const shop = headers().get("x-shop-id");
+export default function Home() {
+  const [shop, setShop] = useState(null);
+  const [products, setProducts] = useState([]);
 
-  // Jika tidak memakai subdomain → tampilkan landing
-  if (!shop) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h1>Selamat datang di TokoInstan</h1>
-        <p>Platform pembuatan toko otomatis dengan Google Sheet.</p>
-        <p>Gunakan subdomain: https://NAMA.tokoinstan.online</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    // Ambil "shop" dari header
+    fetch("/api/get-shop")
+      .then(res => res.json())
+      .then(async (data) => {
+        const shopName = data.shop;
+        setShop(shopName);
 
-  // Ambil data produk sesuai subdomain
-  let products = [];
-  try {
-    const q = query(
-      collection(db, "products"),
-      where("shop", "==", shop)
-    );
-    const snap = await getDocs(q);
+        if (!shopName) return;
 
-    products = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-  } catch (err) {
-    return <div>Error Firestore: {err.message}</div>;
-  }
+        // Ambil produk berdasarkan shop
+        const colRef = collection(db, `shops/${shopName}/products`);
+        const snap = await getDocs(colRef);
+
+        const result = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setProducts(result);
+      });
+  }, []);
 
   return (
-    <div style={{ padding: 30 }}>
-      <h1>Toko: {shop}</h1>
-      <h2>Produk:</h2>
+    <div style={{ padding: 24 }}>
+      {shop ? (
+        <>
+          <h1>Selamat datang di toko: {shop}</h1>
+          <h2>Daftar Produk</h2>
 
-      {products.length === 0 && <p>Belum ada produk.</p>}
+          {products.length === 0 && <p>Produk belum tersedia.</p>}
 
-      <ul>
-        {products.map((p) => (
-          <li key={p.id}>
-            <b>{p.name}</b> — {p.price}
-          </li>
-        ))}
-      </ul>
+          <ul>
+            {products.map((p) => (
+              <li key={p.id}>
+                <strong>{p.name}</strong> — Rp {p.price}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p>Mendeteksi subdomain...</p>
+      )}
     </div>
   );
 }
