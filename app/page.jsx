@@ -1,4 +1,6 @@
 "use client";
+
+import { useState, useEffect } from "react";
 import { headers } from "next/headers";
 import ShopPage from "@/components/ShopPage";
 
