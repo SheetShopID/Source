@@ -1,4 +1,4 @@
-import { db } from "@/firebase/client";
+import { db } from "../firebase/client";
 import { ref, get } from "firebase/database";
 
 export async function GET(req) {
