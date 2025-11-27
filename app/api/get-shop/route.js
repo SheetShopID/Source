@@ -7,8 +7,9 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const shop = searchParams.get("shop");
 
-    if (!shop)
+    if (!shop) {
       return NextResponse.json({ error: "No shop param" }, { status: 400 });
+    }
 
     const shopRef = ref(db, `shops/${shop}`);
     const snap = await get(shopRef);
