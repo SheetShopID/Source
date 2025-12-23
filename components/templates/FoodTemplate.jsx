@@ -34,6 +34,7 @@ export default function FoodTemplate({ products, utils }) {
     <div className="food-container">
       
       {/* --- 1. HEADER TOKO (Local Header) --- */}
+      {/*
       <div className="store-header">
         <div className="store-avatar">
           🍔
@@ -43,6 +44,7 @@ export default function FoodTemplate({ products, utils }) {
           <p className="store-desc">Makanan lezat langsung dari dapur kami ke meja Anda.</p>
         </div>
       </div>
+      */}
 
       {/* --- 2. LIST KATEGORI & PRODUK --- */}
       <div className="menu-list">
@@ -374,3 +376,4 @@ export default function FoodTemplate({ products, utils }) {
     </div>
   );
 }
+
