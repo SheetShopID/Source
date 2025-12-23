@@ -5,7 +5,7 @@ import FoodTemplate from "./templates/FoodTemplate";
 import LaundryTemplate from "./templates/LaundryTemplate";
 
 /******************************
- *  UTILS
+ *  UTILS  *
  ******************************/
 export const Utils = {
   formatRp: (v) =>
