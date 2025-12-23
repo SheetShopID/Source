@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 /******************************
- * PREVIEW COMPONENT
+ * PREVIEW COMPONENT *
  ******************************/
 function ThemePreview({ theme }) {
   if (theme === "makanan") {
@@ -154,3 +154,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
