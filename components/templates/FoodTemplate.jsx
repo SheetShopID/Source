@@ -1,46 +1,99 @@
 export default function FoodTemplate({ products, utils }) {
   return (
-    <div className="p-4">
+    <div className="product-list">
       {products.map((item, idx) => (
-        <div 
-          key={idx} 
-          className="bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden flex mb-4 border border-black/5 transition-transform hover:scale-[1.01]"
-        >
-          {/* Kiri: Gambar  tes*/}
+        <div key={idx} className="product-card">
+          {/* Kiri: Gambar 100px */}
           <img 
             src={item.img || "https://via.placeholder.com/100"} 
             alt={item.name} 
-            className="w-[100px] h-[100px] object-cover shrink-0 bg-gray-100"
+            className="product-img" 
           />
-
+          
           {/* Kanan: Info */}
-          <div className="p-3 flex flex-col justify-center w-full">
+          <div className="product-info">
             
             {/* Badge Promo */}
             {item.promo && (
-              <div className="bg-[#ffedd5] text-[#c2410c] text-[10px] font-bold px-1.5 py-0.5 rounded w-fit mb-1.5">
-                {item.promo}
-              </div>
+              <div className="badge-promo">{item.promo}</div>
             )}
 
             {/* Nama Produk */}
-            <h3 className={`font-semibold text-base leading-tight text-[#7c2d12] mb-1 ${item.promo ? 'mb-1' : 'mb-2'}`}>
-              {item.name}
-            </h3>
+            <h3 className="product-name">{item.name}</h3>
 
             {/* Meta Info (Category) */}
-            <div className="text-xs text-gray-500 mb-1.5">
+            <div className="product-meta">
               {item.category || "Menu Spesial"}
             </div>
 
-            {/* Harga */}
-            <div className="font-bold text-base text-[#c2410c]">
+            {/* Harga (Warna Oranye) */}
+            <div className="product-price">
               {utils.formatRp(item.price)}
             </div>
           </div>
         </div>
       ))}
+
+      <style jsx>{`
+        .product-list { display: flex; flex-direction: column; gap: 1rem; }
+        
+        .product-card {
+          background: white;
+          border-radius: 8px;
+          overflow: hidden;
+          display: flex;
+          border: 1px solid rgba(0,0,0,0.05);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          /* Penting: Sesuai ukuran preview */
+        }
+
+        .product-img {
+          width: 100px;
+          height: 100px;
+          object-fit: cover;
+          background: #eee;
+          flex-shrink: 0;
+        }
+
+        .product-info {
+          padding: 12px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .badge-promo {
+          background: #ffedd5;
+          color: #c2410c;
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          align-self: flex-start;
+          margin-bottom: 4px;
+          display: inline-block;
+        }
+
+        .product-name {
+          font-weight: 600;
+          font-size: 14px; /* 0.95rem */
+          color: #7c2d12; /* Warna Teks Makanan */
+          margin-bottom: 4px;
+          line-height: 1.2;
+        }
+
+        .product-meta {
+          font-size: 12px; /* 0.8rem */
+          color: #64748b;
+          margin-bottom: 6px;
+        }
+
+        .product-price {
+          color: #c2410c; /* Warna Aksen Makanan */
+          font-weight: 700;
+          font-size: 16px; /* 1rem */
+        }
+      `}</style>
     </div>
   );
 }
-
