@@ -19,7 +19,7 @@ function parseCSV(text) {
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
     
-    // Simple split (sesuai desain preview sederhana)
+    // Simple split (sesuai desain preview sederhana) temp
     // Jika butuh robust parsing untuk koma dalam kutip, gunakan kode robust sebelumnya
     const cols = lines[i].split(","); 
 
