@@ -1,11 +1,11 @@
 export const metadata = {
-  title: "Tokoinstan",
-  description: "Multi shop",
+  title: "Toko Instan",
+  description: "Platform toko subdomain",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body>{children}</body>
     </html>
   );
