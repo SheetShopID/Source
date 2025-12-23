@@ -7,7 +7,8 @@ export function middleware(req) {
 
   // Jika domain utama → tampilkan homepage
   if (sub === "tokoinstan" || sub === "www") {
-    return NextResponse.next();
+    //return NextResponse.next();
+    return NextResponse.rewrite(new URL("/register", req.url));
   }
 
   const res = NextResponse.next();
