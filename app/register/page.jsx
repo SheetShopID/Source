@@ -309,7 +309,7 @@ export default function RegisterPage() {
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         
-        body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; padding: 20px; }
+        body { background-color: #f8fafc; color: var(--text-main); line-height: 1.5; padding: 20px; }
 
         /* --- LAYOUT --- */
         .container { max-width: 1200px; margin: 0 auto; }
@@ -330,7 +330,7 @@ export default function RegisterPage() {
         }
 
         /* --- CARD STYLES --- */
-        .card { background: var(--bg-card); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .card { background: var(--bg-card); border-radius: var(--radius); padding: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
         
         /* --- FORM ELEMENTS --- */
         .form-group { margin-bottom: 1.5rem; }
@@ -551,3 +551,4 @@ export default function RegisterPage() {
     </>
   );
 }
+
