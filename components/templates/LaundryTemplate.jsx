@@ -3,7 +3,7 @@ export default function LaundryTemplate({ products, utils }) {
     <div className="product-list">
       {products.map((item, idx) => (
         <div key={idx} className="product-card">
-          {/* Kiri: Gambar / Ikon Area 100px */}
+          {/* Kiri: Gambar / Ikon Area 100px tes */}
           <img 
             src={item.img || "https://via.placeholder.com/100"} 
             alt={item.name} 
@@ -97,3 +97,4 @@ export default function LaundryTemplate({ products, utils }) {
     </div>
   );
 }
+
