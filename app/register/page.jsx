@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-
+//import sudah ganti
 export default function RegisterPage() {
   const [form, setForm] = useState({
     name: "",
@@ -100,3 +100,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
