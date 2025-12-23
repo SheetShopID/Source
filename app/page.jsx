@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import ShopPage from "@/components/ShopPage";
+import ShopPage from "../components/ShopPage";
 
 export default function Home() {
   const shop = headers().get("x-shop-id");
