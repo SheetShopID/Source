@@ -1,46 +1,76 @@
-export default function JastipTemplate({ products, utils, theme }) {
+export default function JastipTemplate({ products, utils }) {
   return (
-    <div className="p-4">
+    <div className="product-list">
       {products.map((item, idx) => (
-        <div 
-          key={idx} 
-          // Card Style: White, Shadow, Radius 8px (sesuai preview)
-          className="bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden flex mb-4 border border-black/5"
-        >
-          {/* Kiri: Gambar (100px) */}
-          <img 
-            src={item.img || "https://via.placeholder.com/100"} 
-            alt={item.name} 
-            className="w-[100px] h-[100px] object-cover shrink-0 bg-gray-100"
-          />
-
-          {/* Kanan: Info */}
-          <div className="p-3 flex flex-col justify-center w-full">
-            
-            {/* Badge Promo */}
-            {item.promo && (
-              <div className="bg-[#ffedd5] text-[#c2410c] text-[10px] font-bold px-1.5 py-0.5 rounded w-fit mb-1.5">
-                {item.promo}
-              </div>
-            )}
-
-            {/* Nama Produk (Menggunakan theme.text) */}
-            <h3 className={`font-semibold text-base leading-tight mb-1 ${theme.text}`}>
-              {item.name}
-            </h3>
-
-            {/* Meta Info */}
-            <div className="text-[0.8rem] text-[#64748b] mb-1.5">
-              {item.fee > 0 ? `Fee: ${utils.formatRp(item.fee)}` : "Tanpa Fee Jastip"}
-            </div>
-
-            {/* Harga (Menggunakan theme.accent) */}
-            <div className={`font-bold text-base ${theme.accent}`}>
-              {utils.formatRp(item.price)}
-            </div>
+        <div key={idx} className="product-card">
+          <img src={item.img || "https://via.placeholder.com/100"} alt={item.name} className="product-img" />
+          <div className="product-info">
+            {item.promo && <div className="badge-promo">{item.promo}</div>}
+            <h3 className="product-name">{item.name}</h3>
+            <div className="product-meta">Fee: {utils.formatRp(item.fee)}</div>
+            <div className="product-price">{utils.formatRp(item.price)}</div>
           </div>
         </div>
       ))}
+
+      <style jsx>{`
+        .product-list { display: flex; flex-direction: column; gap: 1rem; }
+        
+        .product-card {
+          background: white;
+          border-radius: 8px;
+          overflow: hidden;
+          display: flex;
+          border: 1px solid rgba(0,0,0,0.05);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          height: 100px; /* Sesuai Preview */
+        }
+
+        .product-img {
+          width: 100px;
+          height: 100%;
+          object-fit: cover;
+          background: #eee;
+        }
+
+        .product-info {
+          padding: 12px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .badge-promo {
+          background: #ffedd5;
+          color: #c2410c;
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          align-self: flex-start;
+          margin-bottom: 4px;
+          display: inline-block;
+        }
+
+        .product-name {
+          font-weight: 600;
+          font-size: 14px;
+          color: #1e293b; /* Fallback jika var tidak load */
+          margin-bottom: 4px;
+          line-height: 1.2;
+        }
+
+        .product-meta {
+          font-size: 12px;
+          color: #64748b;
+          margin-bottom: 6px;
+        }
+
+        .product-price {
+          font-weight: 700;
+          font-size: 14px;
+        }
+      `}</style>
     </div>
   );
 }
