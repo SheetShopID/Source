@@ -26,7 +26,7 @@ export default function RegisterPage() {
     try {
       // Pastikan URL ini sesuai dengan nama file route.js Anda
       // Jika file route ada di: /app/api/register/route.js -> gunakan '/api/register'
-      const res = await fetch("/api/register", {
+      const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form), // Form sudah termasuk 'theme'
@@ -196,3 +196,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
