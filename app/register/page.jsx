@@ -1,14 +1,71 @@
 "use client";
 import { useState } from "react";
 
+/******************************
+ * PREVIEW COMPONENT
+ ******************************/
+function ThemePreview({ theme }) {
+  if (theme === "makanan") {
+    return (
+      <div className="preview-card food">
+        <h4>🍔 Contoh Menu</h4>
+        <div className="row">
+          <div className="img" />
+          <div>
+            <strong>Nasi Ayam</strong>
+            <p>Rp25.000</p>
+            <span className="promo">Promo!</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (theme === "laundry") {
+    return (
+      <div className="preview-card laundry">
+        <h4>🧺 Layanan Laundry</h4>
+        <ul>
+          <li>Cuci Kering — Rp7.000/kg</li>
+          <li>Cuci Setrika — Rp9.000/kg</li>
+          <li>Express — Rp12.000/kg</li>
+        </ul>
+      </div>
+    );
+  }
+
+  // Default: JASTIP
+  return (
+    <div className="preview-card jastip">
+      <h4>🛍️ Produk Jastip</h4>
+      <div className="grid">
+        <div className="item">
+          <div className="img" />
+          <strong>Barang Import</strong>
+          <p>Rp150.000</p>
+          <small>Fee: Rp10.000</small>
+        </div>
+        <div className="item">
+          <div className="img" />
+          <strong>Snack Jepang</strong>
+          <p>Rp45.000</p>
+          <small>Fee: Rp5.000</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/******************************
+ * REGISTER PAGE
+ ******************************/
 export default function RegisterPage() {
-  // 1. TAMBAHKAN 'theme' ke state default
   const [form, setForm] = useState({
     name: "",
     wa: "",
     sheetUrl: "",
     subdomain: "",
-    theme: "jastip", // Default tema adalah jastip
+    theme: "jastip",
   });
 
   const [error, setError] = useState("");
@@ -24,12 +81,10 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Pastikan URL ini sesuai dengan nama file route.js Anda
-      // Jika file route ada di: /app/api/register/route.js -> gunakan '/api/register'
       const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form), // Form sudah termasuk 'theme'
+        body: JSON.stringify(form),
       });
 
       const json = await res.json();
@@ -40,160 +95,154 @@ export default function RegisterPage() {
         return;
       }
 
-      // Redirect ke subdomain toko yang baru dibuat
       window.location.href = json.redirect;
-
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan koneksi");
       setLoading(false);
     }
   }
 
   return (
-    <div className="container">
-      <h1 className="title">Daftar Tokoinstan</h1>
-      <p className="subtitle">Mulai jualan dalam hitungan detik</p>
+    <div className="wrapper">
+      <div className="container">
+        <h1 className="title">Daftar Tokoinstan</h1>
+        <p className="subtitle">Mulai jualan dalam hitungan detik</p>
 
-      <form onSubmit={submit}>
-        <input
-          name="name"
-          placeholder="Nama Toko (contoh: Jastip Keren)"
-          onChange={onChange}
-          value={form.name}
-          required
-          className="input"
-        />
+        <form onSubmit={submit}>
+          <input name="name" placeholder="Nama Toko" onChange={onChange} value={form.name} required className="input" />
+          <input name="wa" placeholder="Nomor WhatsApp" onChange={onChange} value={form.wa} required className="input" />
+          <input name="sheetUrl" placeholder="Link Google Sheet (CSV)" onChange={onChange} value={form.sheetUrl} required className="input" />
+          <input name="subdomain" placeholder="Subdomain" onChange={onChange} value={form.subdomain} required className="input" />
 
-        <input
-          name="wa"
-          placeholder="Nomor WhatsApp (628xxx)"
-          onChange={onChange}
-          value={form.wa}
-          required
-          className="input"
-        />
-
-        <input
-          name="sheetUrl"
-          placeholder="Link Google Sheet (CSV)"
-          onChange={onChange}
-          value={form.sheetUrl}
-          required
-          className="input"
-        />
-
-        <input
-          name="subdomain"
-          placeholder="Subdomain (contoh: tokoku)"
-          onChange={onChange}
-          value={form.subdomain}
-          required
-          className="input"
-        />
-
-        {/* 2. INPUT BARU: PILIH TEMA */}
-        <div className="select-wrapper">
-          <label>Pilih Tema Katalog:</label>
-          <select
-            name="theme"
-            onChange={onChange}
-            value={form.theme}
-            className="input"
-          >
-            <option value="jastip">🛍️ Jastip (Grid & Fee)</option>
-            <option value="makanan">🍔 Makanan (Visual & Menu)</option>
-            <option value="laundry">🧺 Laundry (List & Simple)</option>
+          <label className="label">Pilih Tema Katalog</label>
+          <select name="theme" onChange={onChange} value={form.theme} className="input">
+            <option value="jastip">🛍️ Jastip</option>
+            <option value="makanan">🍔 Makanan</option>
+            <option value="laundry">🧺 Laundry</option>
           </select>
-        </div>
 
-        {error && <div className="error">{error}</div>}
+          {error && <div className="error">{error}</div>}
 
-        <button type="submit" disabled={loading} className="button">
-          {loading ? "Memproses..." : "Buat Toko Sekarang"}
-        </button>
-      </form>
+          <button type="submit" disabled={loading} className="button">
+            {loading ? "Memproses..." : "Buat Toko Sekarang"}
+          </button>
+        </form>
+      </div>
 
-      {/* 3. CSS UPGRADE (Mobile Friendly) */}
+      {/* PREVIEW */}
+      <div className="preview">
+        <ThemePreview theme={form.theme} />
+      </div>
+
       <style jsx>{`
+        .wrapper {
+          display: flex;
+          gap: 40px;
+          max-width: 900px;
+          margin: 40px auto;
+          padding: 0 20px;
+          flex-wrap: wrap;
+        }
+
         .container {
-          max-width: 480px; /* Lebar maksimal di desktop */
-          margin: 40px auto; /* Tengah di desktop */
-          padding: 0 20px; /* Padding biar tidak nempel pinggir di HP */
+          flex: 1;
+          min-width: 300px;
+        }
+
+        .preview {
+          flex: 1;
+          min-width: 280px;
         }
 
         .title {
+          text-align: center;
           font-size: 24px;
           font-weight: 800;
-          margin-bottom: 5px;
-          text-align: center;
-          color: #1e293b;
         }
 
         .subtitle {
-          font-size: 14px;
-          color: #64748b;
           text-align: center;
-          margin-bottom: 25px;
+          color: #64748b;
+          margin-bottom: 20px;
         }
 
         .input {
           width: 100%;
-          padding: 14px; /* Padding lebih besar untuk jari */
-          margin: 10px 0;
+          padding: 14px;
+          margin-bottom: 12px;
           border: 1px solid #cbd5e1;
-          border-radius: 8px; /* Sudut melengkung */
-          font-size: 16px;
-          box-sizing: border-box; /* Agar padding tidak memperbesar lebar */
-          transition: border-color 0.2s;
+          border-radius: 8px;
         }
 
-        .input:focus {
-          border-color: #2563eb;
-          outline: none;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .select-wrapper {
-          margin: 15px 0;
-        }
-
-        .select-wrapper label {
-          display: block;
-          margin-bottom: 8px;
-          font-size: 14px;
+        .label {
           font-weight: 600;
-          color: #334155;
+          margin: 10px 0 6px;
+          display: block;
         }
 
         .button {
           width: 100%;
           padding: 15px;
-          margin-top: 20px;
-          background-color: #2563eb;
+          background: #2563eb;
           color: white;
           border: none;
           border-radius: 8px;
-          font-size: 16px;
           font-weight: bold;
-          cursor: pointer;
-        }
-
-        .button:disabled {
-          background-color: #94a3b8;
-          cursor: not-allowed;
         }
 
         .error {
+          background: #fee2e2;
           color: #991b1b;
-          background-color: #fee2e2;
-          padding: 12px;
+          padding: 10px;
           border-radius: 6px;
-          margin-top: 15px;
-          font-size: 14px;
-          border: 1px solid #fecaca;
+          margin-bottom: 10px;
+        }
+
+        /* PREVIEW */
+        .preview-card {
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 16px;
+          background: #fff;
+        }
+
+        .preview-card h4 {
+          margin-bottom: 10px;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+
+        .item {
+          border: 1px solid #ddd;
+          padding: 8px;
+          border-radius: 6px;
+        }
+
+        .img {
+          height: 60px;
+          background: #e5e7eb;
+          border-radius: 4px;
+          margin-bottom: 6px;
+        }
+
+        .row {
+          display: flex;
+          gap: 10px;
+        }
+
+        .promo {
+          color: green;
+          font-size: 12px;
+        }
+
+        ul {
+          padding-left: 16px;
         }
       `}</style>
     </div>
   );
 }
-
