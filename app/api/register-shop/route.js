@@ -1,13 +1,15 @@
+// app/api/register/route.js
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { subdomain, name, wa, sheetUrl } = await req.json();
+    // 1. AMBIL DATA DARI REQUEST (TAMBAHKAN 'theme')
+    const { subdomain, name, wa, sheetUrl, theme } = await req.json();
 
     // VALIDASI DASAR
-    if (!subdomain || !name || !wa || !sheetUrl) {
+    if (!subdomain || !name || !wa || !sheetUrl || !theme) {
       return NextResponse.json(
-        { error: "Data tidak lengkap" },
+        { error: "Data tidak lengkap (termasuk tema)" },
         { status: 400 }
       );
     }
@@ -28,9 +30,10 @@ export async function POST(req) {
       );
     }
 
+    // GUNAKAN URL FIREBASE ANDA
     const url = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${subdomain}.json`;
 
-    // CEK SUBDOMAIN
+    // CEK APAKAH SUBDOMAIN SUDAH ADA
     const check = await fetch(url);
     const exists = await check.json();
 
@@ -41,15 +44,17 @@ export async function POST(req) {
       );
     }
 
-    // SIMPAN DATA
+    // 2. SUSUN DATA YANG AKAN DISIMPAN (TAMBAHKAN 'theme' DISINI)
     const data = {
       name,
       wa,
       sheetUrl,
+      theme, // <-- FIELD BARU
       createdAt: Date.now(),
       active: true,
     };
 
+    // SIMPAN DATA
     const save = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -69,6 +74,7 @@ export async function POST(req) {
     });
 
   } catch (e) {
+    console.error(e);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
