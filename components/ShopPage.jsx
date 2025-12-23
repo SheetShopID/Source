@@ -187,7 +187,7 @@ export default function ShopPage({ shop }) {
           min-height: 100vh;
         }
 
-        /* --- FLOATING BUTTON --- */
+        /* --- FLOATING BUTTON tes--- */
         .float-wa {
           position: fixed;
           bottom: 24px;
