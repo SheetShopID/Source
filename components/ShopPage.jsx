@@ -1,75 +1,66 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import JastipTemplate from "./templates/JastipTemplate";
+import FoodTemplate from "./templates/FoodTemplate";
+import LaundryTemplate from "./templates/LaundryTemplate";
 
 /******************************
  *  UTILS
  ******************************/
-const Utils = {
+export const Utils = {
   formatRp: (v) =>
-    isNaN(v) ? "Rp0" : "Rp" + v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-  escapeHtml: (s) =>
-    (s || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;"),
+    isNaN(v) ? "Rp0" : "Rp" + v.toLocaleString("id-ID"),
 };
 
 /******************************
  *  CSV PARSER
  ******************************/
 function parseCSV(text) {
-  const rows = text.trim().split("\n");
-  const headers = rows[0].split(",");
+  const [head, ...rows] = text.trim().split("\n");
+  const headers = head.split(",");
 
-  return rows.slice(1).map((row) => {
+  return rows.map((row) => {
     const cols = row.split(",");
-
-    const obj = {};
-    headers.forEach((h, i) => {
+    return headers.reduce((obj, h, i) => {
       obj[h.trim()] = cols[i]?.trim() ?? "";
-    });
-    return obj;
+      return obj;
+    }, {});
   });
 }
 
 /******************************
- *  SHOP PAGE COMPONENT
+ *  SHOP PAGE
  ******************************/
 export default function ShopPage({ shop }) {
-  const [data, setData] = useState(null);
+  const [shopData, setShopData] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        // 1. Fetch data shop dari Firebase
         const res = await fetch(`/api/get-shop?shop=${shop}`);
-        const json = await res.json();
-        setData(json);
+        const data = await res.json();
 
-        // 2. Jika ada sheetUrl → fetch CSV-nya
-        if (json.sheetUrl) {
-          const sheetRes = await fetch(json.sheetUrl);
-          const csvText = await sheetRes.text();
+        setShopData(data);
 
-          const parsed = parseCSV(csvText);
+        if (data.sheetUrl) {
+          const csv = await fetch(data.sheetUrl).then((r) => r.text());
+          const parsed = parseCSV(csv);
 
-          // 3. Konversi CSV menjadi array produk standar
           const mapped = parsed.map((p) => ({
-            name: p.Name || "",
-            shop: p.Shop || "",
+            name: p.Name,
             price: Number(p.Price || 0),
-            img: p.Img || "",
+            img: p.Img,
             fee: Number(p.Fee || 0),
-            category: p.Category || "",
-            promo: p.Promo || "",
+            category: p.Category,
+            promo: p.Promo,
           }));
 
           setProducts(mapped);
         }
-      } catch (err) {
-        console.error("❌ Error:", err);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
@@ -78,62 +69,26 @@ export default function ShopPage({ shop }) {
     load();
   }, [shop]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!data) return <p>Toko tidak ditemukan...</p>;
+  const Template = useMemo(() => {
+    if (!shopData) return null;
+    switch (shopData.theme) {
+      case "makanan":
+        return FoodTemplate;
+      case "laundry":
+        return LaundryTemplate;
+      default:
+        return JastipTemplate;
+    }
+  }, [shopData]);
+
+  if (loading) return <p style={{ padding: 20 }}>⏳ Memuat toko...</p>;
+  if (!shopData) return <p>Toko tidak ditemukan</p>;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>{data.name}</h1>
-      <p>{data.desc}</p>
-
-      <h2>Produk</h2>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-          gap: 20,
-        }}
-      >
-        {products.map((p, i) => (
-          <div
-            key={i}
-            style={{
-              border: "1px solid #ddd",
-              padding: 10,
-              borderRadius: 8,
-              background: "#fff",
-            }}
-          >
-            {p.img ? (
-              <img
-                src={p.img}
-                alt={p.name}
-                style={{ width: "100%", height: 120, objectFit: "cover" }}
-              />
-            ) : (
-              <div
-                style={{
-                  height: 120,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#eee",
-                  color: "#999",
-                }}
-              >
-                {p.shop}
-              </div>
-            )}
-
-            <h3>{Utils.escapeHtml(p.name)}</h3>
-            <p>{Utils.formatRp(p.price)} + Fee {Utils.formatRp(p.fee)}</p>
-            <p>Kategori: {p.category}</p>
-
-            {p.promo && <p style={{ color: "green" }}>Promo: {p.promo}</p>}
-          </div>
-        ))}
-      </div>
-    </div>
+    <Template
+      shop={shopData}
+      products={products}
+      utils={Utils}
+    />
   );
 }
