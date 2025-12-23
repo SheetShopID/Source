@@ -6,7 +6,7 @@ export default function JastipTemplate({ products, utils }) {
           key={idx} 
           className="bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden flex mb-4 border border-black/5 transition-transform hover:scale-[1.01]"
         >
-          {/* Kiri: Gambar (100px) */}
+          {/* Kiri: Gambar (100px) tes*/}
           <img 
             src={item.img || "https://via.placeholder.com/100"} 
             alt={item.name} 
@@ -43,3 +43,4 @@ export default function JastipTemplate({ products, utils }) {
     </div>
   );
 }
+
