@@ -1,12 +1,13 @@
-export default function JastipTemplate({ products, utils }) {
+export default function JastipTemplate({ products, utils, theme }) {
   return (
     <div className="p-4">
       {products.map((item, idx) => (
         <div 
           key={idx} 
-          className="bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden flex mb-4 border border-black/5 transition-transform hover:scale-[1.01]"
+          // Card Style: White, Shadow, Radius 8px (sesuai preview)
+          className="bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden flex mb-4 border border-black/5"
         >
-          {/* Kiri: Gambar (100px) tes*/}
+          {/* Kiri: Gambar (100px) */}
           <img 
             src={item.img || "https://via.placeholder.com/100"} 
             alt={item.name} 
@@ -23,18 +24,18 @@ export default function JastipTemplate({ products, utils }) {
               </div>
             )}
 
-            {/* Nama Produk */}
-            <h3 className={`font-semibold text-base leading-tight text-[#831843] mb-1 ${item.promo ? 'mb-1' : 'mb-2'}`}>
+            {/* Nama Produk (Menggunakan theme.text) */}
+            <h3 className={`font-semibold text-base leading-tight mb-1 ${theme.text}`}>
               {item.name}
             </h3>
 
-            {/* Meta Info (Fee) */}
-            <div className="text-xs text-gray-500 mb-1.5">
+            {/* Meta Info */}
+            <div className="text-[0.8rem] text-[#64748b] mb-1.5">
               {item.fee > 0 ? `Fee: ${utils.formatRp(item.fee)}` : "Tanpa Fee Jastip"}
             </div>
 
-            {/* Harga */}
-            <div className={`font-bold text-base text-[#be185d]`}>
+            {/* Harga (Menggunakan theme.accent) */}
+            <div className={`font-bold text-base ${theme.accent}`}>
               {utils.formatRp(item.price)}
             </div>
           </div>
@@ -43,4 +44,3 @@ export default function JastipTemplate({ products, utils }) {
     </div>
   );
 }
-
