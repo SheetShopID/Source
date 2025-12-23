@@ -340,7 +340,7 @@ export default function RegisterPage() {
         .form-input, .form-select {
             width: 100%;
             padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             font-size: 1rem;
             transition: all 0.2s;
@@ -348,7 +348,7 @@ export default function RegisterPage() {
         
         .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #1d4ed8;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
@@ -551,5 +551,6 @@ export default function RegisterPage() {
     </>
   );
 }
+
 
 
