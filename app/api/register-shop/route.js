@@ -11,7 +11,7 @@ export async function POST(req) {
       );
     }
 
-    // VALIDASI SUBDOMAIN
+    // VALIDASI SUBDOMAIN hanya huruf kecil
     if (!/^[a-z0-9-]+$/.test(subdomain)) {
       return NextResponse.json(
         { error: "Subdomain hanya huruf kecil & angka" },
@@ -74,3 +74,4 @@ export async function POST(req) {
     );
   }
 }
+
