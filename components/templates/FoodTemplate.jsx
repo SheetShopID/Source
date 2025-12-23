@@ -1,19 +1,41 @@
 export default function FoodTemplate({ products, utils }) {
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4">
       {products.map((item, idx) => (
-        <div key={idx} className="bg-white rounded-xl shadow-sm overflow-hidden flex h-36 border border-gray-100">
-          <div className="w-36 h-full bg-gray-100 flex-shrink-0">
-             <img src={item.img || "https://via.placeholder.com/300"} alt={item.name} className="w-full h-full object-cover" />
-          </div>
-          <div className="flex-1 p-4 flex flex-col justify-between">
-            <div>
-              <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{item.name}</h3>
-              <span className="text-xs text-gray-500">{item.category}</span>
+        <div 
+          key={idx} 
+          className="bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden flex mb-4 border border-black/5 transition-transform hover:scale-[1.01]"
+        >
+          {/* Kiri: Gambar */}
+          <img 
+            src={item.img || "https://via.placeholder.com/100"} 
+            alt={item.name} 
+            className="w-[100px] h-[100px] object-cover shrink-0 bg-gray-100"
+          />
+
+          {/* Kanan: Info */}
+          <div className="p-3 flex flex-col justify-center w-full">
+            
+            {/* Badge Promo */}
+            {item.promo && (
+              <div className="bg-[#ffedd5] text-[#c2410c] text-[10px] font-bold px-1.5 py-0.5 rounded w-fit mb-1.5">
+                {item.promo}
+              </div>
+            )}
+
+            {/* Nama Produk */}
+            <h3 className={`font-semibold text-base leading-tight text-[#7c2d12] mb-1 ${item.promo ? 'mb-1' : 'mb-2'}`}>
+              {item.name}
+            </h3>
+
+            {/* Meta Info (Category) */}
+            <div className="text-xs text-gray-500 mb-1.5">
+              {item.category || "Menu Spesial"}
             </div>
-            <div className="flex justify-between items-end">
-              <div className="text-orange-600 font-extrabold text-2xl">{utils.formatRp(item.price)}</div>
-              {item.promo && <span className="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded">{item.promo}</span>}
+
+            {/* Harga */}
+            <div className="font-bold text-base text-[#c2410c]">
+              {utils.formatRp(item.price)}
             </div>
           </div>
         </div>
@@ -21,5 +43,3 @@ export default function FoodTemplate({ products, utils }) {
     </div>
   );
 }
-
-/*tes*/
