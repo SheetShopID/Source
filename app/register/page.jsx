@@ -34,7 +34,6 @@ function ThemePreview({ theme }) {
     );
   }
 
-  // Default: JASTIP
   return (
     <div className="preview-card jastip">
       <h4>🛍️ Produk Jastip</h4>
@@ -129,119 +128,28 @@ export default function RegisterPage() {
         </form>
       </div>
 
-      {/* PREVIEW */}
       <div className="preview">
         <ThemePreview theme={form.theme} />
       </div>
 
       <style jsx>{`
-        .wrapper {
-          display: flex;
-          gap: 40px;
-          max-width: 900px;
-          margin: 40px auto;
-          padding: 0 20px;
-          flex-wrap: wrap;
-        }
-
-        .container {
-          flex: 1;
-          min-width: 300px;
-        }
-
-        .preview {
-          flex: 1;
-          min-width: 280px;
-        }
-
-        .title {
-          text-align: center;
-          font-size: 24px;
-          font-weight: 800;
-        }
-
-        .subtitle {
-          text-align: center;
-          color: #64748b;
-          margin-bottom: 20px;
-        }
-
-        .input {
-          width: 100%;
-          padding: 14px;
-          margin-bottom: 12px;
-          border: 1px solid #cbd5e1;
-          border-radius: 8px;
-        }
-
-        .label {
-          font-weight: 600;
-          margin: 10px 0 6px;
-          display: block;
-        }
-
-        .button {
-          width: 100%;
-          padding: 15px;
-          background: #2563eb;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-weight: bold;
-        }
-
-        .error {
-          background: #fee2e2;
-          color: #991b1b;
-          padding: 10px;
-          border-radius: 6px;
-          margin-bottom: 10px;
-        }
-
-        /* PREVIEW */
-        .preview-card {
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          padding: 16px;
-          background: #fff;
-        }
-
-        .preview-card h4 {
-          margin-bottom: 10px;
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
-        }
-
-        .item {
-          border: 1px solid #ddd;
-          padding: 8px;
-          border-radius: 6px;
-        }
-
-        .img {
-          height: 60px;
-          background: #e5e7eb;
-          border-radius: 4px;
-          margin-bottom: 6px;
-        }
-
-        .row {
-          display: flex;
-          gap: 10px;
-        }
-
-        .promo {
-          color: green;
-          font-size: 12px;
-        }
-
-        ul {
-          padding-left: 16px;
-        }
+        .wrapper { display: flex; gap: 40px; max-width: 900px; margin: 40px auto; padding: 0 20px; flex-wrap: wrap; }
+        .container { flex: 1; min-width: 300px; }
+        .preview { flex: 1; min-width: 280px; }
+        .title { text-align: center; font-size: 24px; font-weight: 800; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 20px; }
+        .input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .label { font-weight: 600; margin: 10px 0 6px; display: block; }
+        .button { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; }
+        .error { background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
+        .preview-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #fff; }
+        .preview-card h4 { margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .item { border: 1px solid #ddd; padding: 8px; border-radius: 6px; }
+        .img { height: 60px; background: #e5e7eb; border-radius: 4px; margin-bottom: 6px; }
+        .row { display: flex; gap: 10px; }
+        .promo { color: green; font-size: 12px; }
+        ul { padding-left: 16px; }
       `}</style>
     </div>
   );
