@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
 export default function RegisterPage() {
-  // --- STATE MANAGEMENT ---
   const [form, setForm] = useState({
     name: "",
     wa: "",
@@ -13,105 +12,119 @@ export default function RegisterPage() {
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  
-  // Ref untuk auto-focus logic jika diperlukan, atau scroll ke toast
   const timeoutRef = useRef(null);
 
-  // --- HANDLERS ---
-
+  /******************************
+   * HANDLERS
+   ******************************/
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
   const handleSubdomainChange = (e) => {
-    // Sanitize input subdomain (hanya a-z, 0-9, -)
-    let val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
-    setForm({ ...form, subdomain: val });
+    const val = e.target.value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "");
+    setForm((f) => ({ ...f, subdomain: val }));
   };
 
-  const handleThemeSelect = (theme) => {
-    setForm({ ...form, theme });
+  const handleThemeSelect = (theme) => setForm((f) => ({ ...f, theme }));
+
+  /******************************
+   * VALIDASI FORM
+   ******************************/
+  const validateForm = () => {
+    if (!form.name.trim()) return "Nama toko wajib diisi.";
+    if (!/^\d{8,15}$/.test(form.wa)) return "Nomor WhatsApp hanya angka (8-15 digit).";
+    if (!form.sheetUrl.startsWith("https://docs.google.com/"))
+      return "Link Google Sheet tidak valid.";
+    if (!form.subdomain.trim()) return "Subdomain wajib diisi.";
+    if (!/^[a-z0-9-]+$/.test(form.subdomain))
+      return "Subdomain hanya boleh huruf, angka, dan tanda minus (-).";
+    return null;
   };
 
+  /******************************
+   * SUBMIT FORM
+   ******************************/
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      showToast(validationError, "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          wa: form.wa,
-          sheetUrl: form.sheetUrl,
-          subdomain: form.subdomain,
-          theme: form.theme,
-        }),
+        body: JSON.stringify(form),
       });
 
       const json = await res.json();
 
       if (!res.ok) {
-        showToast(json.error || "Gagal mendaftar", "error");
+        showToast(json.error || "Gagal mendaftar toko.", "error");
         setLoading(false);
         return;
       }
 
-      showToast("Selamat! Tokomu berhasil dibuat.", "success");
-      
-      // Redirect setelah sukses
+      showToast("Selamat! Tokomu berhasil dibuat 🎉", "success");
       setTimeout(() => {
         window.location.href = json.redirect;
       }, 1500);
-
     } catch (err) {
-      showToast("Terjadi kesalahan koneksi", "error");
+      showToast("Terjadi kesalahan koneksi ke server.", "error");
       setLoading(false);
     }
   };
 
-  // --- TOAST LOGIC ---
+  /******************************
+   * TOAST NOTIFICATION
+   ******************************/
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
-    
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    
-    timeoutRef.current = setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 3000);
+    timeoutRef.current = setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3000);
   };
 
-  // --- HELPER DUMMY DATA PREVIEW ---
+  /******************************
+   * DUMMY PREVIEW ITEMS
+   ******************************/
   const getPreviewItems = (theme) => {
-    const items = [
+    const defaults = [
       { img: "https://picsum.photos/seed/prod1/100/100", name: "Kemeja Flanel Kotak", meta: "Fee: Rp 5.000", price: "Rp 85.000", promo: "Promo" },
       { img: "https://picsum.photos/seed/prod2/100/100", name: "Dress Musim Panas", meta: "Fee: Rp 10.000", price: "Rp 150.000", promo: "" },
       { img: "https://picsum.photos/seed/prod3/100/100", name: "Celana Chino Panjang", meta: "Fee: Rp 8.000", price: "Rp 120.000", promo: "" },
     ];
 
-    if (theme === 'makanan') {
-      return [
+    const variants = {
+      makanan: [
         { img: "https://picsum.photos/seed/food1/100/100", name: "Paket Ayam Bakar Madu", meta: "Menu Spesial", price: "Rp 35.000", promo: "" },
         { img: "https://picsum.photos/seed/food2/100/100", name: "Es Kopi Susu Gula Aren", meta: "Minuman", price: "Rp 18.000", promo: "Diskon" },
         { img: "https://picsum.photos/seed/food3/100/100", name: "Nasi Goreng Spesial", meta: "Makanan Berat", price: "Rp 22.000", promo: "" },
-      ];
-    }
-
-    if (theme === 'laundry') {
-      return [
+      ],
+      laundry: [
         { img: "https://picsum.photos/seed/laun1/100/100", name: "Cuci Komplit (Kg)", meta: "Layanan Cuci", price: "Rp 7.000", promo: "" },
         { img: "https://picsum.photos/seed/laun2/100/100", name: "Cuci Bed Cover", meta: "Satuan", price: "Rp 25.000", promo: "" },
         { img: "https://picsum.photos/seed/laun3/100/100", name: "Setrika Saja", meta: "Layanan", price: "Rp 5.000", promo: "" },
-      ];
-    }
+      ],
+    };
 
-    return items; // Default Jastip
+    return variants[theme] || defaults;
   };
 
   const previewData = getPreviewItems(form.theme);
 
+  /******************************
+   * RENDER
+   ******************************/
   return (
     <>
       <div className="container">
@@ -121,145 +134,119 @@ export default function RegisterPage() {
         </header>
 
         <div className="split-layout">
-          {/* --- LEFT COLUMN: FORM --- */}
+          {/* FORM SIDE */}
           <section className="form-column">
             <div className="card">
-              <form onSubmit={handleSubmit} id="registerForm">
+              <form onSubmit={handleSubmit}>
                 {/* Nama Toko */}
                 <div className="form-group">
-                  <label className="form-label" htmlFor="storeName">Nama Toko</label>
-                  <input 
-                    type="text" 
-                    id="storeName" 
-                    className="form-input" 
-                    placeholder="Contoh: Jastip Seoul Keren" 
+                  <label className="form-label">Nama Toko</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Contoh: Jastip Seoul Keren"
                     name="name"
                     value={form.name}
                     onChange={handleInputChange}
-                    required 
+                    required
                   />
-                  <p className="form-hint">Nama yang akan tampil di header toko.</p>
                 </div>
 
-                {/* Nomor WhatsApp */}
+                {/* Nomor WA */}
                 <div className="form-group">
-                  <label className="form-label" htmlFor="waNumber">Nomor WhatsApp</label>
-                  <div className="input-wrapper">
-                    <input 
-                      type="tel" 
-                      id="waNumber" 
-                      className="form-input" 
-                      placeholder="81234567890" 
-                      name="wa"
-                      value={form.wa}
-                      onChange={handleInputChange}
-                      required 
-                    />
-                  </div>
-                  <p className="form-hint">Nomor WA untuk menerima pesanan pelanggan.</p>
+                  <label className="form-label">Nomor WhatsApp</label>
+                  <input
+                    type="tel"
+                    className="form-input"
+                    placeholder="81234567890"
+                    name="wa"
+                    value={form.wa}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
 
                 {/* Subdomain */}
                 <div className="form-group">
-                  <label className="form-label" htmlFor="subdomain">Subdomain Toko</label>
+                  <label className="form-label">Subdomain Toko</label>
                   <div className="input-wrapper">
-                    <input 
-                      type="text" 
-                      id="subdomain" 
-                      className="form-input" 
-                      placeholder="tokosaya" 
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="tokosaya"
                       name="subdomain"
                       value={form.subdomain}
                       onChange={handleSubdomainChange}
-                      required 
+                      required
                     />
-                    <span className="input-suffix">.tokoinstan.com</span>
+                    <span className="input-suffix">.tokoinstan.online</span>
                   </div>
-                  <p className="form-hint" id="subdomainStatus">Hanya huruf, angka, dan tanda strip (-).</p>
                 </div>
 
-                {/* Google Sheet Link */}
+                {/* Google Sheet */}
                 <div className="form-group">
-                  <label className="form-label" htmlFor="sheetUrl">Link Google Sheet (CSV)</label>
-                  <input 
-                    type="url" 
-                    id="sheetUrl" 
-                    className="form-input" 
-                    placeholder="https://docs.google.com/spreadsheets/d/..." 
+                  <label className="form-label">Link Google Sheet (CSV)</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
                     name="sheetUrl"
                     value={form.sheetUrl}
                     onChange={handleInputChange}
-                    required 
+                    required
                   />
-                  <p className="form-hint">Pastikan Sheet di-set 'Anyone with the link can view'. <br/>Kolom wajib: Name, Price, Img, Fee, Category, Promo.</p>
                 </div>
 
-                {/* Pilih Tema */}
+                {/* Theme */}
                 <div className="form-group">
-                  <label className="form-label">Pilih Tema Katalog</label>
+                  <label className="form-label">Pilih Tema</label>
                   <div className="theme-grid">
-                    <div 
-                      className={`theme-card ${form.theme === 'jastip' ? 'active' : ''}`} 
-                      onClick={() => handleThemeSelect('jastip')}
-                    >
-                      <span className="theme-icon">🛍️</span>
-                      <div className="theme-title">Jastip</div>
-                    </div>
-                    <div 
-                      className={`theme-card ${form.theme === 'makanan' ? 'active' : ''}`} 
-                      onClick={() => handleThemeSelect('makanan')}
-                    >
-                      <span className="theme-icon">🍔</span>
-                      <div className="theme-title">Makanan</div>
-                    </div>
-                    <div 
-                      className={`theme-card ${form.theme === 'laundry' ? 'active' : ''}`} 
-                      onClick={() => handleThemeSelect('laundry')}
-                    >
-                      <span className="theme-icon">👕</span>
-                      <div className="theme-title">Laundry</div>
-                    </div>
+                    {["jastip", "makanan", "laundry"].map((t) => (
+                      <div
+                        key={t}
+                        className={`theme-card ${form.theme === t ? "active" : ""}`}
+                        onClick={() => handleThemeSelect(t)}
+                      >
+                        <span className="theme-icon">
+                          {t === "jastip" ? "🛍️" : t === "makanan" ? "🍔" : "👕"}
+                        </span>
+                        <div className="theme-title">
+                          {t.charAt(0).toUpperCase() + t.slice(1)}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary" id="submitBtn" disabled={loading}>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? "Memproses..." : "Buat Toko Sekarang"}
                 </button>
               </form>
             </div>
           </section>
 
-          {/* --- RIGHT COLUMN: PREVIEW --- */}
+          {/* PREVIEW SIDE */}
           <section className="preview-column">
-            <div className="card" style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}>
-              <div style={{ marginBottom: '1rem', textAlign: 'center', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
-                Live Preview
-              </div>
-              
+            <div className="card" style={{ background: "transparent", border: "none", boxShadow: "none" }}>
               <div className="preview-wrapper">
-                <div className={`mobile-frame theme-${form.theme}`} id="mobilePreview">
+                <div className={`mobile-frame theme-${form.theme}`}>
                   <div className="app-header">
-                    <div className="shop-name" id="previewShopName">{form.name || 'Nama Toko'}</div>
-                    <div className="shop-tagline" id="previewUrl">{form.subdomain ? `${form.subdomain}.tokoinstan.com` : 'tokosaya.tokoinstan.com'}</div>
+                    <div className="shop-name">{form.name || "Nama Toko"}</div>
+                    <div className="shop-tagline">
+                      {form.subdomain ? `${form.subdomain}.tokoinstan.online` : "tokosaya.tokoinstan.online"}
+                    </div>
                   </div>
-                  
-                  <div className="app-content" id="previewContent">
-                    {/* Render Product Items dynamically */}
-                    {previewData.map((item, idx) => (
-                      <div key={idx} className={`product-card ${item.promo ? 'has-promo' : ''}`}>
-                        <img src={item.img} alt="Product" className="product-img" />
+                  <div className="app-content">
+                    {previewData.map((item, i) => (
+                      <div key={i} className="product-card">
+                        <img src={item.img} alt="" className="product-img" />
                         <div className="product-info">
-                          {item.promo && <div className="product-promo">{item.promo}</div>}
                           <div className="product-name">{item.name}</div>
                           <div className="product-meta">{item.meta}</div>
                           <div className="product-price">{item.price}</div>
                         </div>
                       </div>
                     ))}
-                    
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#999', fontSize: '0.8rem' }}>
-                      Scroll down for more...
-                    </div>
                   </div>
                 </div>
               </div>
@@ -268,15 +255,13 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* TOAST NOTIFICATION */}
+      {/* TOAST */}
       <div className="toast-container">
         {toast.show && (
-          <div className={`toast ${toast.type} show`}>
-            <div style={{ fontSize: '1.5rem' }}>
-              {toast.type === 'success' ? '✅' : '⚠️'}
-            </div>
+          <div className={`toast ${toast.type} show`} onClick={() => setToast({ show: false })}>
+            <div>{toast.type === "success" ? "✅" : "⚠️"}</div>
             <div className="toast-content">
-              <h4>{toast.type === 'success' ? 'Berhasil' : 'Terjadi Kesalahan'}</h4>
+              <h4>{toast.type === "success" ? "Berhasil" : "Terjadi Kesalahan"}</h4>
               <p>{toast.message}</p>
             </div>
           </div>
@@ -530,6 +515,7 @@ export default function RegisterPage() {
     </>
   );
 }
+
 
 
 
