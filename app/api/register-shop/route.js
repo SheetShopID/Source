@@ -2,46 +2,138 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { subdomain, name, wa, sheetUrl, theme } = await req.json();
+    /******************************
+     * 1. PARSE & SANITIZE INPUT
+     ******************************/
+    const body = await req.json();
+    let { subdomain, name, wa, sheetUrl, theme } = body || {};
 
     if (!subdomain || !name || !wa || !sheetUrl || !theme) {
-      return NextResponse.json({ error: "Data tidak lengkap (termasuk tema)" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Data tidak lengkap" },
+        { status: 400 }
+      );
     }
 
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
-      return NextResponse.json({ error: "Subdomain tidak valid" }, { status: 400 });
+    // Normalisasi
+    const cleanSubdomain = subdomain.toLowerCase().trim();
+    const cleanName = name.replace(/[<>]/g, "").trim();
+    const cleanWa = wa.trim();
+    const cleanSheetUrl = sheetUrl.trim();
+
+    /******************************
+     * 2. VALIDASI INPUT
+     ******************************/
+    // Subdomain format
+    if (!/^[a-z0-9-]+$/.test(cleanSubdomain)) {
+      return NextResponse.json(
+        { success: false, error: "Subdomain hanya boleh huruf kecil, angka, dan '-'" },
+        { status: 400 }
+      );
     }
 
-    const reserved = ["www", "admin", "api"];
-    if (reserved.includes(subdomain)) {
-      return NextResponse.json({ error: "Subdomain tidak diperbolehkan" }, { status: 400 });
+    // Panjang subdomain
+    if (cleanSubdomain.length < 3 || cleanSubdomain.length > 20) {
+      return NextResponse.json(
+        { success: false, error: "Subdomain harus 3–20 karakter" },
+        { status: 400 }
+      );
     }
 
-    const url = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${subdomain}.json`;
+    // Reserved subdomain
+    const reserved = ["www", "admin", "api", "dashboard"];
+    if (reserved.includes(cleanSubdomain)) {
+      return NextResponse.json(
+        { success: false, error: "Subdomain tidak diperbolehkan" },
+        { status: 400 }
+      );
+    }
 
-    const check = await fetch(url);
+    // Validasi WhatsApp
+    if (!/^62[0-9]{8,13}$/.test(cleanWa)) {
+      return NextResponse.json(
+        { success: false, error: "Nomor WhatsApp harus diawali 62" },
+        { status: 400 }
+      );
+    }
+
+    // Validasi tema
+    const allowedThemes = ["jastip", "makanan", "laundry"];
+    if (!allowedThemes.includes(theme)) {
+      return NextResponse.json(
+        { success: false, error: "Tema tidak valid" },
+        { status: 400 }
+      );
+    }
+
+    /******************************
+     * 3. CHECK EXISTING SHOP
+     ******************************/
+    const firebaseUrl = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${cleanSubdomain}.json`;
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 5000);
+
+    const check = await fetch(firebaseUrl, {
+      method: "GET",
+      signal: controller.signal,
+    });
+
     const exists = await check.json();
 
     if (exists) {
-      return NextResponse.json({ error: "Subdomain sudah digunakan" }, { status: 409 });
+      return NextResponse.json(
+        { success: false, error: "Subdomain sudah digunakan" },
+        { status: 409 }
+      );
     }
 
-    const data = { name, wa, sheetUrl, theme, createdAt: Date.now(), active: true };
+    /******************************
+     * 4. SAVE SHOP DATA
+     ******************************/
+    const shopData = {
+      name: cleanName,
+      wa: cleanWa,
+      sheetUrl: cleanSheetUrl,
+      theme,
+      subdomain: cleanSubdomain,
+      plan: "free",
+      active: true,
+      visit: 0,
+      createdAt: Date.now(),
+    };
 
-    const save = await fetch(url, {
+    const save = await fetch(firebaseUrl, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(shopData),
     });
 
     if (!save.ok) {
-      return NextResponse.json({ error: "Gagal menyimpan data toko" }, { status: 500 });
+      console.error("[REGISTER] Firebase save failed", save.status);
+      return NextResponse.json(
+        { success: false, error: "Gagal menyimpan data toko" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true, redirect: `https://${subdomain}.tokoinstan.online` });
+    /******************************
+     * 5. SUCCESS RESPONSE
+     ******************************/
+    const redirect = `https://${cleanSubdomain}.tokoinstan.online`;
+
+    console.log("[REGISTER SUCCESS]", cleanSubdomain);
+
+    return NextResponse.json({
+      success: true,
+      redirect,
+    });
 
   } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("[REGISTER ERROR]", e);
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
