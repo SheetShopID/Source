@@ -1,74 +1,44 @@
-import { NextResponse } from "next/server";
-import { db } from "@/lib/firebaseAdmin";
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebaseAdmin';
 
-export const runtime = "nodejs";        // ⬅️ WAJIB
-export const dynamic = "force-dynamic"; // ⬅️ WAJIB
+export const runtime = 'nodejs'; // ⬅️ PENTING (hindari edge)
 
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const body = await req.json();
-    const { subdomain, name, wa, sheetUrl, theme } = body || {};
+    const body = await request.json();
+    const { shopId, name, wa, sheetUrl } = body;
 
-    /* =====================
-     * VALIDATION
-     ===================== */
-    if (!subdomain || !name || !wa || !sheetUrl || !theme) {
+    if (!shopId || !name || !wa) {
       return NextResponse.json(
-        { error: "Data tidak lengkap" },
+        { error: 'Invalid payload' },
         { status: 400 }
       );
     }
 
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
-      return NextResponse.json(
-        { error: "Subdomain tidak valid" },
-        { status: 400 }
-      );
-    }
-
-    const reserved = ["www", "admin", "api", "register"];
-    if (reserved.includes(subdomain)) {
-      return NextResponse.json(
-        { error: "Subdomain tidak diperbolehkan" },
-        { status: 400 }
-      );
-    }
-
-    /* =====================
-     * FIREBASE OPERATION
-     ===================== */
-    const ref = db.ref(`shops/${subdomain}`);
+    const ref = db.ref(`shops/${shopId}`);
 
     const snapshot = await ref.get();
     if (snapshot.exists()) {
       return NextResponse.json(
-        { error: "Subdomain sudah digunakan" },
+        { error: 'Shop already exists' },
         { status: 409 }
       );
     }
 
     await ref.set({
-      name: name.trim(),
-      wa: wa.startsWith("62") ? wa : `62${wa}`,
-      sheetUrl: sheetUrl.trim(),
-      theme,
+      name,
+      wa,
+      sheetUrl: sheetUrl || '',
+      theme: 'default',
       active: true,
       createdAt: Date.now(),
     });
 
-    /* =====================
-     * RESPONSE
-     ===================== */
-    return NextResponse.json({
-      success: true,
-      redirect: `https://${subdomain}.tokoinstan.online`,
-    });
-
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[REGISTER SHOP ERROR]", err);
-
+    console.error('[REGISTER SHOP API]', err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: 'Internal Server Error' },
       { status: 500 }
     );
   }
