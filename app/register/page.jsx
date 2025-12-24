@@ -232,7 +232,7 @@ export default function RegisterPage() {
           {/* --- RIGHT COLUMN: PREVIEW --- */}
           <section className="preview-column">
             <div className="card" style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}>
-              <div style={{ marginBottom: '1rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
+              <div style={{ marginBottom: '1rem', textAlign: 'center', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
                 Live Preview
               </div>
               
@@ -286,27 +286,6 @@ export default function RegisterPage() {
       {/* --- CSS VARIABLES & STYLES --- */}
       <style jsx>{`
         /* --- CSS VARIABLES & RESET --- */
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            
-            /* Theme Variables (Dynamic) */
-            --theme-bg: #ffffff;
-            --theme-header: #2563eb;
-            --theme-text: #1e293b;
-            --theme-accent: #3b82f6;
-            --theme-radius: 8px;
-        }
-
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         
         body { background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding: 20px; }
@@ -315,7 +294,7 @@ export default function RegisterPage() {
         .container { max-width: 1200px; margin: 0 auto; }
         .header { margin-bottom: 2rem; text-align: center; }
         .header h1 { font-size: 2rem; font-weight: 800; color: #2563eb; letter-spacing: -0.05em; }
-        .header p { color: var(--text-muted); margin-top: 0.5rem; }
+        .header p { color: #64748b; margin-top: 0.5rem; }
 
         .split-layout {
             display: grid;
@@ -335,7 +314,7 @@ export default function RegisterPage() {
         /* --- FORM ELEMENTS --- */
         .form-group { margin-bottom: 1.5rem; }
         .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .form-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .form-hint { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
         
         .form-input, .form-select {
             width: 100%;
@@ -358,7 +337,7 @@ export default function RegisterPage() {
             right: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            color: #64748b;
             font-weight: 500;
             pointer-events: none;
         }
@@ -366,7 +345,7 @@ export default function RegisterPage() {
         /* --- THEME SELECTION CARDS --- */
         .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
         .theme-card {
-            border: 2px solid var(--border);
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
             padding: 1rem;
             cursor: pointer;
@@ -376,7 +355,7 @@ export default function RegisterPage() {
         }
         
         .theme-card:hover { border-color: #1d4ed8; background: #f0f7ff; }
-        .theme-card.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px var(--primary); }
+        .theme-card.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px #2563eb; }
         .theme-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
         .theme-title { font-weight: 600; font-size: 0.9rem; }
 
@@ -397,7 +376,7 @@ export default function RegisterPage() {
         
         .btn-primary { background: #2563eb; color: white; }
         .btn-primary:hover { background: #1d4ed8; }
-        .btn-primary:disabled { background: var(--text-muted); cursor: not-allowed; }
+        .btn-primary:disabled { background: #64748b; cursor: not-allowed; }
 
         /* --- PREVIEW MOBILE SIMULATOR --- */
         .preview-wrapper {
@@ -434,7 +413,7 @@ export default function RegisterPage() {
 
         /* --- THEME PREVIEW INTERNAL STYLES --- */
         .app-header {
-            background: var(--theme-header);
+            background: #2563eb;
             color: white;
             padding: 40px 16px 16px; /* Top padding clears the notch */
             text-align: center;
@@ -445,14 +424,14 @@ export default function RegisterPage() {
         .app-content {
             flex: 1;
             overflow-y: auto;
-            background: var(--theme-bg);
+            background: #ffffff;
             padding: 16px;
         }
 
         /* Product Card Component inside Preview */
         .product-card {
             background: #fff;
-            border-radius: var(--theme-radius);
+            border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             margin-bottom: 16px;
             overflow: hidden;
@@ -479,19 +458,19 @@ export default function RegisterPage() {
         .product-name {
             font-weight: 600;
             font-size: 0.95rem;
-            color: var(--theme-text);
+            color: #1e293b;
             margin-bottom: 4px;
             line-height: 1.2;
         }
 
         .product-meta {
             font-size: 0.8rem;
-            color: var(--text-muted);
+            color: #64748b;
             margin-bottom: 6px;
         }
 
         .product-price {
-            color: var(--theme-accent);
+            color: #3b82f6;;
             font-weight: 700;
             font-size: 1rem;
         }
@@ -531,14 +510,14 @@ export default function RegisterPage() {
             min-width: 300px;
             transform: translateX(120%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border-left: 4px solid var(--primary);
+            border-left: 4px solid #2563eb;
         }
         
         .toast.show { transform: translateX(0); }
-        .toast.success { border-left-color: var(--success); }
-        .toast.error { border-left-color: var(--danger); }
+        .toast.success { border-left-color: #22c55e; }
+        .toast.error { border-left-color: #ef4444; }
         .toast-content h4 { font-size: 0.95rem; margin-bottom: 2px; }
-        .toast-content p { font-size: 0.85rem; color: var(--text-muted); }
+        .toast-content p { font-size: 0.85rem; color: #64748b; }
 
         /* --- THEME SPECIFIC OVERRIDES (PREVIEW) --- */
         /* Theme: Jastip */
@@ -551,5 +530,6 @@ export default function RegisterPage() {
     </>
   );
 }
+
 
 
