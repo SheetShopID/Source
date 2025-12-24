@@ -135,7 +135,10 @@ export default function RegisterPage() {
    * RENDER
    ===================== */
   return (
-    <> 
+    <>
+      {/* === JSX KAMU (TIDAK DIUBAH STRUKTURNYA) === */}
+      {/* FORM + PREVIEW persis seperti versi lama */}
+
       {/* TOAST */}
       <div className="toast-container">
         {toast.show && (
