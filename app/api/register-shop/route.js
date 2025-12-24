@@ -7,7 +7,7 @@ export async function POST(req) {
   try {
     const { subdomain, name, wa, sheetUrl, theme } = await req.json();
 
-    // --- VALIDASI DASAR ---
+    // --- VALIDASI DASAR tes ---
     if (!subdomain || !name || !wa || !sheetUrl || !theme) {
       return NextResponse.json(
         { error: "Data tidak lengkap" },
@@ -63,3 +63,4 @@ export async function POST(req) {
     );
   }
 }
+
