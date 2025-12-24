@@ -5,20 +5,7 @@ import FoodTemplate from "./templates/FoodTemplate";
 import LaundryTemplate from "./templates/LaundryTemplate";
 import { formatRp } from "@/lib/utils";
 import { parseCSV, convertSheetToCSVUrl } from "@/lib/csv";
-
-/******************************
- * GOOGLE SHEET → CSV URL
- ******************************/
-function convertSheetToCSVUrl(url) {
-  try {
-    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if (!match) return url;
-    return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=0`;
-  } catch {
-    return url;
-  }
-}
-
+ 
 /******************************
  * MAIN COMPONENT
  ******************************/
