@@ -9,7 +9,7 @@ export async function GET(req) {
       return NextResponse.json({ error: "No shop param" }, { status: 400 });
     }
 
-    // URL Firebase Realtime Database JSON
+    // URL Firebase Realtime Database JSON tes
     const url = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${shop}.json`;
 
     const res = await fetch(url);
