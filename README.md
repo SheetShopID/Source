@@ -16,6 +16,25 @@ npm install
 npm run dev
 ```
 
+## 📊 flow utama
+
+```mermaid
+flowchart TD
+    A[User buka website] --> B{Domain utama?}
+    B -- Ya --> C[Tampilkan Form Register]
+    C --> D[Submit Data]
+    D --> E{Subdomain tersedia?}
+    E -- Tidak --> F[Error Subdomain]
+    E -- Ya --> G[Simpan ke Firebase]
+    G --> H[Redirect ke Subdomain]
+
+    B -- Tidak --> I[Tampilkan Halaman Toko]
+    I --> J[Ambil Data Firebase]
+    J --> K[Ambil Produk Google Sheet]
+    K --> L[Tampilkan Produk]
+
+```
+
 ## 📊 Alur Register Toko (domain utama)
 
 ```mermaid
@@ -42,7 +61,7 @@ sequenceDiagram
     Browser ->> User: Redirect ke subdomain toko
 ```
 
-## 📊 Alur Akses Toko (Subdomain)
+## 🚀 Alur Akses Toko (Subdomain)
 ```mermaid
 sequenceDiagram
     participant User
