@@ -5,19 +5,16 @@ export function middleware(req) {
   const parts = host.split(".");
   const sub = parts[0];
 
-  // DOMAIN UTAMA → HALAMAN REGISTER
   if (sub === "tokoinstan" || sub === "www") {
     return NextResponse.rewrite(new URL("/register", req.url));
   }
 
-  // SUBDOMAIN TOKO
-  const res = NextResponse.next();
-  res.headers.set("x-shop-id", sub);
-  return res;
+  // rewrite GET /shop → /api/get-shop?shopId=sub
+  const url = req.nextUrl.clone();
+  url.searchParams.set("shopId", sub);
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)"
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
