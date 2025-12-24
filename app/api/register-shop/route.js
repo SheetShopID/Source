@@ -7,12 +7,11 @@ const RESERVED = ["www", "admin", "api"];
 
 export async function POST(req) {
   try {
-    // 🔹 INIT FIREBASE DI SINI (BUKAN DI IMPORT)
+    // 🔥 WAJIB DIPANGGIL DI SINI
     const { db } = getFirebaseAdmin();
 
     const { subdomain, name, wa, sheetUrl, theme } = await req.json();
 
-    // --- VALIDASI DASAR ---
     if (!subdomain || !name || !wa || !sheetUrl || !theme) {
       return NextResponse.json(
         { error: "Data tidak lengkap" },
@@ -44,7 +43,6 @@ export async function POST(req) {
       );
     }
 
-    // --- DATA FINAL ---
     await ref.set({
       name,
       wa,
