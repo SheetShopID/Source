@@ -82,19 +82,21 @@ export default function ShopPage({ shop }) {
         setLoading(true);
         setError("");
 
-        // 1. Fetch shop info
-        const res = await fetch(`/api/get-shop?shop=${shop}`);
-        const json = await res.json();
+        const res = await fetch(`/api/get-shop?shop=${shop}`, {
+          cache: "no-store",
+        });
 
-        if (!json.success) {
-          throw new Error(json.error || "Toko tidak ditemukan");
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Toko tidak ditemukan");
         }
 
-        setShopData(json.data);
+        const shopJson = await res.json();
+        setShopData(shopJson);
 
-        // 2. Fetch CSV products
-        if (json.data.sheetUrl) {
-          const csvUrl = convertSheetToCSVUrl(json.data.sheetUrl);
+        // Load products from Google Sheet
+        if (shopJson.sheetUrl) {
+          const csvUrl = convertSheetToCSVUrl(shopJson.sheetUrl);
           const csvRes = await fetch(csvUrl);
 
           if (!csvRes.ok) {
@@ -104,20 +106,20 @@ export default function ShopPage({ shop }) {
           const csvText = await csvRes.text();
           const parsed = parseCSV(csvText);
 
-          const mapped = parsed.map((p) => ({
-            name: p.name,
-            price: p.price || 0,
-            img: p.img || "",
-            fee: p.fee || 0,
-            category: p.category || "",
-            promo: p.promo || "",
-          }));
-
-          setProducts(mapped);
+          setProducts(
+            parsed.map((p) => ({
+              name: p.name,
+              price: p.price || 0,
+              img: p.img || "",
+              fee: p.fee || 0,
+              category: p.category || "",
+              promo: p.promo || "",
+            }))
+          );
         }
       } catch (e) {
         console.error("[SHOP PAGE]", e);
-        setError(e.message);
+        setError(e.message || "Terjadi kesalahan");
       } finally {
         setLoading(false);
       }
@@ -142,44 +144,27 @@ export default function ShopPage({ shop }) {
     }
   }, [shopData]);
 
-  const memoProducts = useMemo(() => products, [products]);
-
   /******************************
    * UI STATES
    ******************************/
   if (loading) {
-    return (
-      <div className="p-10 text-center text-gray-500">
-        Memuat toko...
-      </div>
-    );
+    return <div className="p-10 text-center text-gray-500">Memuat toko...</div>;
   }
 
   if (error) {
-    return (
-      <div className="p-10 text-center text-red-600">
-        {error}
-      </div>
-    );
+    return <div className="p-10 text-center text-red-600">{error}</div>;
   }
 
   if (!shopData) {
-    return (
-      <div className="p-10 text-center text-red-600">
-        Toko tidak ditemukan
-      </div>
-    );
+    return <div className="p-10 text-center text-red-600">Toko tidak ditemukan</div>;
   }
-
-  const themeClass = `theme-${shopData.theme}`;
 
   /******************************
    * RENDER
    ******************************/
   return (
     <main>
-      {/* HEADER */}
-      <header className={`app-header ${themeClass}`}>
+      <header className={`app-header theme-${shopData.theme}`}>
         <div className="pt-[40px] pb-4 px-4 text-center">
           <h1 className="shop-name">{shopData.name}</h1>
           <div className="shop-tagline">
@@ -188,12 +173,10 @@ export default function ShopPage({ shop }) {
         </div>
       </header>
 
-      {/* CONTENT */}
-      <div className={`app-content ${themeClass}`}>
-        <Template products={memoProducts} utils={Utils} />
+      <div className={`app-content theme-${shopData.theme}`}>
+        <Template products={products} utils={Utils} />
       </div>
 
-      {/* FLOATING WA */}
       <a
         href={`https://wa.me/${shopData.wa}`}
         target="_blank"
@@ -202,92 +185,6 @@ export default function ShopPage({ shop }) {
       >
         💬
       </a>
-
-      {/* GLOBAL THEME VARIABLES */}
-      <style jsx global>{`
-        :root {
-          --text-main: #1e293b;
-          --text-muted: #64748b;
-          --white: #ffffff;
-        }
-
-        .theme-jastip {
-          --theme-header: #db2777;
-          --theme-bg: #fdf2f8;
-          --theme-accent: #be185d;
-        }
-
-        .theme-makanan {
-          --theme-header: #ea580c;
-          --theme-bg: #fff7ed;
-          --theme-accent: #c2410c;
-        }
-
-        .theme-laundry {
-          --theme-header: #0284c7;
-          --theme-bg: #f0f9ff;
-          --theme-accent: #0369a1;
-        }
-
-        * {
-          box-sizing: border-box;
-        }
-
-        body {
-          font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-      `}</style>
-
-      {/* PAGE STYLES */}
-      <style jsx>{`
-        main {
-          min-height: 100vh;
-          background: var(--theme-bg);
-          padding-bottom: 80px;
-        }
-
-        .app-header {
-          background: var(--theme-header);
-          color: white;
-          position: sticky;
-          top: 0;
-          z-index: 50;
-        }
-
-        .shop-name {
-          font-size: 1.25rem;
-          font-weight: 700;
-        }
-
-        .shop-tagline {
-          font-size: 0.75rem;
-          opacity: 0.9;
-          margin-top: 4px;
-        }
-
-        .app-content {
-          padding: 16px;
-          min-height: 100vh;
-        }
-
-        .float-wa {
-          position: fixed;
-          bottom: 24px;
-          right: 24px;
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          background: #25d366;
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 28px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-          text-decoration: none;
-          z-index: 50;
-        }
-      `}</style>
     </main>
   );
 }
