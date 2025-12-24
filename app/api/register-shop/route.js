@@ -1,46 +1,68 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebaseAdmin';
+import { NextResponse } from "next/server";
+import { getFirebaseAdmin } from "@/lib/firebaseAdmin";
 
-export const runtime = 'nodejs'; // ⬅️ PENTING (hindari edge)
+export const runtime = "nodejs";
 
-export async function POST(request) {
+const RESERVED = ["www", "admin", "api"];
+
+export async function POST(req) {
   try {
-    const body = await request.json();
-    const { shopId, name, wa, sheetUrl } = body;
+    // 🔹 INIT FIREBASE DI SINI (BUKAN DI IMPORT)
+    const { db } = getFirebaseAdmin();
 
-    if (!shopId || !name || !wa) {
+    const { subdomain, name, wa, sheetUrl, theme } = await req.json();
+
+    // --- VALIDASI DASAR ---
+    if (!subdomain || !name || !wa || !sheetUrl || !theme) {
       return NextResponse.json(
-        { error: 'Invalid payload' },
+        { error: "Data tidak lengkap" },
         { status: 400 }
       );
     }
 
-    const ref = db.ref(`shops/${shopId}`);
+    if (!/^[a-z0-9-]+$/.test(subdomain)) {
+      return NextResponse.json(
+        { error: "Subdomain tidak valid" },
+        { status: 400 }
+      );
+    }
 
+    if (RESERVED.includes(subdomain)) {
+      return NextResponse.json(
+        { error: "Subdomain tidak diperbolehkan" },
+        { status: 400 }
+      );
+    }
+
+    const ref = db.ref(`shops/${subdomain}`);
     const snapshot = await ref.get();
+
     if (snapshot.exists()) {
       return NextResponse.json(
-        { error: 'Shop already exists' },
+        { error: "Subdomain sudah digunakan" },
         { status: 409 }
       );
     }
 
+    // --- DATA FINAL ---
     await ref.set({
       name,
       wa,
-      sheetUrl: sheetUrl || '',
-      theme: 'default',
+      sheetUrl,
+      theme,
       active: true,
       createdAt: Date.now(),
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      redirect: `https://${subdomain}.tokoinstan.online`,
+    });
   } catch (err) {
-    console.error('[REGISTER SHOP API]', err);
+    console.error("[REGISTER SHOP ERROR]", err);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
 }
-/*tes*/
