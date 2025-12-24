@@ -1,9 +1,10 @@
+// middleware.js
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
   const host = req.headers.get("host") || "";
   const parts = host.split(".");
-  const sub = parts[0];
+  const sub = parts[0]?.toLowerCase();
 
   // DOMAIN UTAMA → HALAMAN REGISTER
   if (sub === "tokoinstan" || sub === "www") {
