@@ -2,17 +2,22 @@ import { NextResponse } from "next/server";
 
 export function middleware(req) {
   const host = req.headers.get("host") || "";
-  const subdomain = host.split(".")[0];
+  const parts = host.split(".");
+  const sub = parts[0];
 
-  if (subdomain === "tokoinstan" || subdomain === "www") {
-    return NextResponse.next();
+  // DOMAIN UTAMA → HALAMAN REGISTER
+  if (sub === "tokoinstan" || sub === "www") {
+    return NextResponse.rewrite(new URL("/register", req.url));
   }
 
+  // SUBDOMAIN TOKO
   const res = NextResponse.next();
-  res.headers.set("x-shop-id", subdomain);
+  res.headers.set("x-shop-id", sub);
   return res;
 }
 
 export const config = {
-  matcher: ["/((?!_next|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico).*)"
+  ],
 };
