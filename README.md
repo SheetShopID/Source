@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-## 📊 Alur Register Toko (Sequence Diagram)
+## 📊 Alur Register Toko (domain utama)
 
 ```mermaid
 sequenceDiagram
@@ -40,4 +40,31 @@ sequenceDiagram
 
     API -->> Browser: Success
     Browser ->> User: Redirect ke subdomain toko
+```
+
+## 📊 Alur Akses Toko (Subdomain)
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Middleware
+    participant Page as ShopPage
+    participant API as API get-shop
+    participant Firebase as Firebase RTDB
+    participant Sheet as Google Sheet
+
+    User ->> Browser: Buka tokoku.tokoinstan.online
+    Browser ->> Middleware: Request
+    Middleware ->> Browser: Set header x-shop-id
+
+    Browser ->> Page: Render halaman toko
+    Page ->> API: GET /api/get-shop?shop=tokoku
+    API ->> Firebase: Ambil data toko
+    Firebase -->> API: Data toko
+
+    API -->> Page: JSON toko
+    Page ->> Sheet: Fetch CSV produk
+    Sheet -->> Page: Data CSV
+
+    Page ->> Browser: Tampilkan toko & produk
 
