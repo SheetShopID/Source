@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
 
-export const runtime = "nodejs";        // WAJIB
-export const dynamic = "force-dynamic"; // WAJIB
+export const runtime = "nodejs";        // ⬅️ WAJIB
+export const dynamic = "force-dynamic"; // ⬅️ WAJIB
 
 export async function POST(req) {
   try {
@@ -35,11 +35,11 @@ export async function POST(req) {
     }
 
     /* =====================
-     * CHECK EXISTING SHOP
+     * FIREBASE OPERATION
      ===================== */
     const ref = db.ref(`shops/${subdomain}`);
-    const snapshot = await ref.get();
 
+    const snapshot = await ref.get();
     if (snapshot.exists()) {
       return NextResponse.json(
         { error: "Subdomain sudah digunakan" },
@@ -47,9 +47,6 @@ export async function POST(req) {
       );
     }
 
-    /* =====================
-     * WRITE DATA
-     ===================== */
     await ref.set({
       name: name.trim(),
       wa: wa.startsWith("62") ? wa : `62${wa}`,
