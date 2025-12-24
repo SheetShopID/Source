@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebaseAdmin";
 
 export async function GET(req) {
   try {
@@ -7,28 +6,30 @@ export async function GET(req) {
     const shop = searchParams.get("shop");
 
     if (!shop) {
-      return NextResponse.json(
-        { error: "Shop param wajib" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No shop param" }, { status: 400 });
     }
 
-    const snapshot = await db.ref(`shops/${shop}`).get();
+    // URL Firebase Realtime Database JSON
+    const url = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${shop}.json`;
 
-    if (!snapshot.exists()) {
-      return NextResponse.json(
-        { error: "Toko tidak ditemukan" },
-        { status: 404 }
-      );
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      return NextResponse.json({ error: "Firebase error" }, { status: 500 });
     }
 
-    return NextResponse.json(snapshot.val());
-  } catch (err) {
-    console.error("GET SHOP ERROR:", err);
+    const data = await res.json();
+
+    if (!data || Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "Shop not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(data, { status: 200 });
+
+  } catch (e) {
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: e.message },
       { status: 500 }
     );
   }
 }
-/*tes*/
