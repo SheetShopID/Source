@@ -3,53 +3,8 @@ import { useEffect, useState, useMemo } from "react";
 import JastipTemplate from "./templates/JastipTemplate";
 import FoodTemplate from "./templates/FoodTemplate";
 import LaundryTemplate from "./templates/LaundryTemplate";
-
-/******************************
- * UTILS
- ******************************/
-export const Utils = {
-  formatRp: (v) =>
-    isNaN(v) ? "Rp0" : "Rp" + v.toLocaleString("id-ID"),
-};
-
-/******************************
- * CSV PARSER
- ******************************/
-function parseCSV(text) {
-  const lines = text
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .split("\n");
-
-  if (lines.length === 0) return [];
-
-  const headers = lines[0]
-    .split(",")
-    .map((h) => h.trim().toLowerCase());
-
-  const result = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-
-    const cols = lines[i].split(",");
-    const product = {};
-
-    headers.forEach((header, index) => {
-      let val = cols[index] ? cols[index].trim() : "";
-
-      if (header === "price" || header === "fee") {
-        val = parseInt(val.replace(/\D/g, "")) || 0;
-      }
-
-      product[header] = val;
-    });
-
-    if (product.name) result.push(product);
-  }
-
-  return result;
-}
+import { formatRp } from "@/lib/utils";
+import { parseCSV, convertSheetToCSVUrl } from "@/lib/csv";
 
 /******************************
  * GOOGLE SHEET → CSV URL
@@ -174,7 +129,7 @@ export default function ShopPage({ shop }) {
       </header>
 
       <div className={`app-content theme-${shopData.theme}`}>
-        <Template products={products} utils={Utils} />
+        <Template products={products} utils={{ formatRp }} />
       </div>
 
       <a
