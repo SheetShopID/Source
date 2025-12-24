@@ -1,4 +1,3 @@
-// app/api/get-shop/route.js
 import { NextResponse } from "next/server";
 
 export async function GET(req) {
@@ -10,22 +9,22 @@ export async function GET(req) {
       return NextResponse.json({ error: "No shop param" }, { status: 400 });
     }
 
-    const url = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${shop}.json`;
+    const firebaseUrl = `https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops/${shop}.json`;
 
-    const res = await fetch(url, { cache: "no-store" }); // Hindari cache
+    const res = await fetch(firebaseUrl, { cache: "no-store" });
 
     if (!res.ok) {
-      return NextResponse.json({ error: "Firebase error" }, { status: res.status });
+      return NextResponse.json({ error: "Firebase fetch failed" }, { status: res.status });
     }
 
     const data = await res.json();
 
-    if (!data || Object.keys(data).length === 0) {
+    if (!data) {
       return NextResponse.json({ error: "Shop not found" }, { status: 404 });
     }
 
     return NextResponse.json(data);
-  } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
