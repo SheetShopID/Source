@@ -1,4 +1,4 @@
-# Sheetshop - Next.js + Firebase + Dynamic Subdomain
+# Github - Next.js + vercel + Firebase + Dynamic Subdomain
 
 ## 🚀 Features
 - Dynamic shop pages via /[shop]
@@ -16,11 +16,28 @@ npm install
 npm run dev
 ```
 
-## 🔧 Environment Variables
-Copy `.env.example` → `.env.local` and fill with your Firebase config.
+## 📊 Alur Register Toko (Sequence Diagram)
 
-## 🚀 Deploy to Vercel
-1. Push to GitHub
-2. Import to Vercel
-3. Add custom domain
-4. Add wildcard domain `*.domainkamu.com`
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant NextJS as Next.js App
+    participant API as API register-shop
+    participant Firebase as Firebase RTDB
+
+    User ->> Browser: Buka tokoinstan.online
+    Browser ->> NextJS: Request /
+    NextJS ->> Browser: Tampilkan halaman Register
+
+    User ->> Browser: Isi form & submit
+    Browser ->> API: POST /api/register-shop
+    API ->> Firebase: Cek subdomain
+    Firebase -->> API: Subdomain tersedia
+
+    API ->> Firebase: Simpan data toko
+    Firebase -->> API: OK
+
+    API -->> Browser: Success
+    Browser ->> User: Redirect ke subdomain toko
+
