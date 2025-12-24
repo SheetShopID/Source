@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebaseAdmin";
+
+export const runtime = "nodejs"; // WAJIB
+export const dynamic = "force-dynamic";
 
 export async function GET(req) {
   try {
@@ -7,19 +9,49 @@ export async function GET(req) {
     const shop = searchParams.get("shop");
 
     if (!shop) {
-      return NextResponse.json({ error: "Shop param required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing shop parameter" },
+        { status: 400 }
+      );
     }
 
-    const snapshot = await db.ref(`shops/${shop}`).get();
+    const url = `${process.env.FIREBASE_DATABASE_URL}/shops/${shop}.json`;
 
-    if (!snapshot.exists()) {
-      return NextResponse.json({ error: "Shop not found" }, { status: 404 });
+    // ⏱️ Tambahkan timeout agar tidak menggantung
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const res = await fetch(url, {
+      signal: controller.signal,
+      cache: "no-store",
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch Firebase" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(snapshot.val());
+    const data = await res.json();
+
+    if (!data) {
+      return NextResponse.json(
+        { error: "Shop not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(data);
 
   } catch (err) {
-    console.error("GET SHOP ERROR:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("[GET SHOP ERROR]", err);
+
+    return NextResponse.json(
+      { error: "Server timeout or internal error" },
+      { status: 500 }
+    );
   }
 }
