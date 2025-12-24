@@ -1,10 +1,8 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function RegisterPage() {
-  /* =====================
-   * STATE
-   ===================== */
+  // --- STATE MANAGEMENT ---
   const [form, setForm] = useState({
     name: "",
     wa: "",
@@ -14,149 +12,278 @@ export default function RegisterPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
-
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  
+  // Ref untuk auto-focus logic jika diperlukan, atau scroll ke toast
   const timeoutRef = useRef(null);
 
-  /* =====================
-   * HANDLERS
-   ===================== */
+  // --- HANDLERS ---
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubdomainChange = (e) => {
-    const val = e.target.value
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9-]/g, "");
-    setForm((prev) => ({ ...prev, subdomain: val }));
+    // Sanitize input subdomain (hanya a-z, 0-9, -)
+    let val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    setForm({ ...form, subdomain: val });
   };
 
   const handleThemeSelect = (theme) => {
-    setForm((prev) => ({ ...prev, theme }));
+    setForm({ ...form, theme });
   };
 
-  /* =====================
-   * SUBMIT (FINAL SAFE)
-   ===================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return;
-
     setLoading(true);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
     try {
-      const payload = {
-        name: form.name.trim(),
-        subdomain: form.subdomain.trim(),
-        sheetUrl: form.sheetUrl.trim(),
-        theme: form.theme,
-        wa: form.wa.startsWith("62") ? form.wa : "62" + form.wa,
-      };
-
       const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
+        body: JSON.stringify({
+          name: form.name,
+          wa: form.wa,
+          sheetUrl: form.sheetUrl,
+          subdomain: form.subdomain,
+          theme: form.theme,
+        }),
       });
 
-      const json = await res.json().catch(() => ({}));
+      const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.error || "Gagal mendaftarkan toko");
+        showToast(json.error || "Gagal mendaftar", "error");
+        setLoading(false);
+        return;
       }
 
       showToast("Selamat! Tokomu berhasil dibuat.", "success");
-
+      
+      // Redirect setelah sukses
       setTimeout(() => {
         window.location.href = json.redirect;
       }, 1500);
+
     } catch (err) {
-      if (err.name === "AbortError") {
-        showToast("Koneksi terlalu lama, silakan coba lagi", "error");
-      } else {
-        showToast(err.message || "Terjadi kesalahan", "error");
-      }
-    } finally {
-      clearTimeout(timeout);
+      showToast("Terjadi kesalahan koneksi", "error");
       setLoading(false);
     }
   };
 
-  /* =====================
-   * TOAST
-   ===================== */
+  // --- TOAST LOGIC ---
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
-
+    
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
     timeoutRef.current = setTimeout(() => {
       setToast({ show: false, message: "", type: "success" });
     }, 3000);
   };
 
-  /* =====================
-   * PREVIEW DATA
-   ===================== */
+  // --- HELPER DUMMY DATA PREVIEW ---
   const getPreviewItems = (theme) => {
-    if (theme === "makanan") {
-      return [
-        { img: "https://picsum.photos/seed/food1/100/100", name: "Paket Ayam Bakar", meta: "Menu", price: "Rp 35.000", promo: "" },
-        { img: "https://picsum.photos/seed/food2/100/100", name: "Es Kopi Susu", meta: "Minuman", price: "Rp 18.000", promo: "Diskon" },
-      ];
-    }
-
-    if (theme === "laundry") {
-      return [
-        { img: "https://picsum.photos/seed/l1/100/100", name: "Cuci Kiloan", meta: "Laundry", price: "Rp 7.000", promo: "" },
-        { img: "https://picsum.photos/seed/l2/100/100", name: "Setrika", meta: "Laundry", price: "Rp 5.000", promo: "" },
-      ];
-    }
-
-    return [
-      { img: "https://picsum.photos/seed/j1/100/100", name: "Sepatu Korea", meta: "Fee Rp5.000", price: "Rp 250.000", promo: "Promo" },
-      { img: "https://picsum.photos/seed/j2/100/100", name: "Tas Import", meta: "Fee Rp10.000", price: "Rp 350.000", promo: "" },
+    const items = [
+      { img: "https://picsum.photos/seed/prod1/100/100", name: "Kemeja Flanel Kotak", meta: "Fee: Rp 5.000", price: "Rp 85.000", promo: "Promo" },
+      { img: "https://picsum.photos/seed/prod2/100/100", name: "Dress Musim Panas", meta: "Fee: Rp 10.000", price: "Rp 150.000", promo: "" },
+      { img: "https://picsum.photos/seed/prod3/100/100", name: "Celana Chino Panjang", meta: "Fee: Rp 8.000", price: "Rp 120.000", promo: "" },
     ];
+
+    if (theme === 'makanan') {
+      return [
+        { img: "https://picsum.photos/seed/food1/100/100", name: "Paket Ayam Bakar Madu", meta: "Menu Spesial", price: "Rp 35.000", promo: "" },
+        { img: "https://picsum.photos/seed/food2/100/100", name: "Es Kopi Susu Gula Aren", meta: "Minuman", price: "Rp 18.000", promo: "Diskon" },
+        { img: "https://picsum.photos/seed/food3/100/100", name: "Nasi Goreng Spesial", meta: "Makanan Berat", price: "Rp 22.000", promo: "" },
+      ];
+    }
+
+    if (theme === 'laundry') {
+      return [
+        { img: "https://picsum.photos/seed/laun1/100/100", name: "Cuci Komplit (Kg)", meta: "Layanan Cuci", price: "Rp 7.000", promo: "" },
+        { img: "https://picsum.photos/seed/laun2/100/100", name: "Cuci Bed Cover", meta: "Satuan", price: "Rp 25.000", promo: "" },
+        { img: "https://picsum.photos/seed/laun3/100/100", name: "Setrika Saja", meta: "Layanan", price: "Rp 5.000", promo: "" },
+      ];
+    }
+
+    return items; // Default Jastip
   };
 
   const previewData = getPreviewItems(form.theme);
 
-  /* =====================
-   * RENDER
-   ===================== */
   return (
     <>
-      {/* === JSX KAMU (TIDAK DIUBAH STRUKTURNYA) === */}
-      {/* FORM + PREVIEW persis seperti versi lama */}
+      <div className="container">
+        <header className="header">
+          <h1>Tokoinstan</h1>
+          <p>Buat toko onlinemu sendiri dalam hitungan detik.</p>
+        </header>
 
-      {/* TOAST */}
+        <div className="split-layout">
+          {/* --- LEFT COLUMN: FORM --- */}
+          <section className="form-column">
+            <div className="card">
+              <form onSubmit={handleSubmit} id="registerForm">
+                {/* Nama Toko */}
+                <div className="form-group">
+                  <label className="form-label" htmlFor="storeName">Nama Toko</label>
+                  <input 
+                    type="text" 
+                    id="storeName" 
+                    className="form-input" 
+                    placeholder="Contoh: Jastip Seoul Keren" 
+                    name="name"
+                    value={form.name}
+                    onChange={handleInputChange}
+                    required 
+                  />
+                  <p className="form-hint">Nama yang akan tampil di header toko.</p>
+                </div>
+
+                {/* Nomor WhatsApp */}
+                <div className="form-group">
+                  <label className="form-label" htmlFor="waNumber">Nomor WhatsApp</label>
+                  <div className="input-wrapper">
+                    <input 
+                      type="tel" 
+                      id="waNumber" 
+                      className="form-input" 
+                      placeholder="81234567890" 
+                      name="wa"
+                      value={form.wa}
+                      onChange={handleInputChange}
+                      required 
+                    />
+                  </div>
+                  <p className="form-hint">Nomor WA untuk menerima pesanan pelanggan.</p>
+                </div>
+
+                {/* Subdomain */}
+                <div className="form-group">
+                  <label className="form-label" htmlFor="subdomain">Subdomain Toko</label>
+                  <div className="input-wrapper">
+                    <input 
+                      type="text" 
+                      id="subdomain" 
+                      className="form-input" 
+                      placeholder="tokosaya" 
+                      name="subdomain"
+                      value={form.subdomain}
+                      onChange={handleSubdomainChange}
+                      required 
+                    />
+                    <span className="input-suffix">.tokoinstan.com</span>
+                  </div>
+                  <p className="form-hint" id="subdomainStatus">Hanya huruf, angka, dan tanda strip (-).</p>
+                </div>
+
+                {/* Google Sheet Link */}
+                <div className="form-group">
+                  <label className="form-label" htmlFor="sheetUrl">Link Google Sheet (CSV)</label>
+                  <input 
+                    type="url" 
+                    id="sheetUrl" 
+                    className="form-input" 
+                    placeholder="https://docs.google.com/spreadsheets/d/..." 
+                    name="sheetUrl"
+                    value={form.sheetUrl}
+                    onChange={handleInputChange}
+                    required 
+                  />
+                  <p className="form-hint">Pastikan Sheet di-set 'Anyone with the link can view'. <br/>Kolom wajib: Name, Price, Img, Fee, Category, Promo.</p>
+                </div>
+
+                {/* Pilih Tema */}
+                <div className="form-group">
+                  <label className="form-label">Pilih Tema Katalog</label>
+                  <div className="theme-grid">
+                    <div 
+                      className={`theme-card ${form.theme === 'jastip' ? 'active' : ''}`} 
+                      onClick={() => handleThemeSelect('jastip')}
+                    >
+                      <span className="theme-icon">🛍️</span>
+                      <div className="theme-title">Jastip</div>
+                    </div>
+                    <div 
+                      className={`theme-card ${form.theme === 'makanan' ? 'active' : ''}`} 
+                      onClick={() => handleThemeSelect('makanan')}
+                    >
+                      <span className="theme-icon">🍔</span>
+                      <div className="theme-title">Makanan</div>
+                    </div>
+                    <div 
+                      className={`theme-card ${form.theme === 'laundry' ? 'active' : ''}`} 
+                      onClick={() => handleThemeSelect('laundry')}
+                    >
+                      <span className="theme-icon">👕</span>
+                      <div className="theme-title">Laundry</div>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary" id="submitBtn" disabled={loading}>
+                  {loading ? "Memproses..." : "Buat Toko Sekarang"}
+                </button>
+              </form>
+            </div>
+          </section>
+
+          {/* --- RIGHT COLUMN: PREVIEW --- */}
+          <section className="preview-column">
+            <div className="card" style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}>
+              <div style={{ marginBottom: '1rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
+                Live Preview
+              </div>
+              
+              <div className="preview-wrapper">
+                <div className={`mobile-frame theme-${form.theme}`} id="mobilePreview">
+                  <div className="app-header">
+                    <div className="shop-name" id="previewShopName">{form.name || 'Nama Toko'}</div>
+                    <div className="shop-tagline" id="previewUrl">{form.subdomain ? `${form.subdomain}.tokoinstan.com` : 'tokosaya.tokoinstan.com'}</div>
+                  </div>
+                  
+                  <div className="app-content" id="previewContent">
+                    {/* Render Product Items dynamically */}
+                    {previewData.map((item, idx) => (
+                      <div key={idx} className={`product-card ${item.promo ? 'has-promo' : ''}`}>
+                        <img src={item.img} alt="Product" className="product-img" />
+                        <div className="product-info">
+                          {item.promo && <div className="product-promo">{item.promo}</div>}
+                          <div className="product-name">{item.name}</div>
+                          <div className="product-meta">{item.meta}</div>
+                          <div className="product-price">{item.price}</div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#999', fontSize: '0.8rem' }}>
+                      Scroll down for more...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* TOAST NOTIFICATION */}
       <div className="toast-container">
         {toast.show && (
           <div className={`toast ${toast.type} show`}>
-            <div style={{ fontSize: "1.5rem" }}>
-              {toast.type === "success" ? "✅" : "⚠️"}
+            <div style={{ fontSize: '1.5rem' }}>
+              {toast.type === 'success' ? '✅' : '⚠️'}
             </div>
             <div className="toast-content">
-              <h4>{toast.type === "success" ? "Berhasil" : "Terjadi Kesalahan"}</h4>
+              <h4>{toast.type === 'success' ? 'Berhasil' : 'Terjadi Kesalahan'}</h4>
               <p>{toast.message}</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* =====================
-          CSS — FULL (ASLI)
-         ===================== */}
+      {/* --- CSS VARIABLES & STYLES --- */}
       <style jsx>{`
         /* --- CSS VARIABLES & RESET --- */
         :root {
@@ -182,12 +309,12 @@ export default function RegisterPage() {
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         
-        body { background-color: #f8fafc; color: var(--text-main); line-height: 1.5; padding: 20px; }
+        body { background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding: 20px; }
 
         /* --- LAYOUT --- */
         .container { max-width: 1200px; margin: 0 auto; }
         .header { margin-bottom: 2rem; text-align: center; }
-        .header h1 { font-size: 2rem; font-weight: 800; color: var(--primary); letter-spacing: -0.05em; }
+        .header h1 { font-size: 2rem; font-weight: 800; color: #2563eb; letter-spacing: -0.05em; }
         .header p { color: var(--text-muted); margin-top: 0.5rem; }
 
         .split-layout {
@@ -248,8 +375,8 @@ export default function RegisterPage() {
             position: relative;
         }
         
-        .theme-card:hover { border-color: var(--primary-hover); background: #f0f7ff; }
-        .theme-card.active { border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 0 2px var(--primary); }
+        .theme-card:hover { border-color: #1d4ed8; background: #f0f7ff; }
+        .theme-card.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px var(--primary); }
         .theme-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
         .theme-title { font-weight: 600; font-size: 0.9rem; }
 
@@ -268,8 +395,8 @@ export default function RegisterPage() {
             transition: background 0.2s;
         }
         
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
         .btn-primary:disabled { background: var(--text-muted); cursor: not-allowed; }
 
         /* --- PREVIEW MOBILE SIMULATOR --- */
@@ -424,3 +551,5 @@ export default function RegisterPage() {
     </>
   );
 }
+
+
