@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
-import { getFirebaseAdmin } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const RESERVED = ["www", "admin", "api"];
+const RESERVED = ["www", "admin", "api", "register"];
 
 export async function POST(req) {
   try {
-    // 🔥 WAJIB DIPANGGIL DI SINI
-    const { db } = getFirebaseAdmin();
-
     const { subdomain, name, wa, sheetUrl, theme } = await req.json();
 
+    // VALIDASI
     if (!subdomain || !name || !wa || !sheetUrl || !theme) {
       return NextResponse.json(
         { error: "Data tidak lengkap" },
@@ -33,24 +31,50 @@ export async function POST(req) {
       );
     }
 
-    const ref = db.ref(`shops/${subdomain}`);
-    const snapshot = await ref.get();
+    const baseUrl = process.env.FIREBASE_DATABASE_URL;
+    if (!baseUrl) {
+      throw new Error("Missing FIREBASE_DATABASE_URL");
+    }
 
-    if (snapshot.exists()) {
+    const shopUrl = `${baseUrl}/shops/${subdomain}.json`;
+
+    // ⏱️ TIMEOUT PROTECTION
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    // CEK APAKAH SHOP SUDAH ADA
+    const checkRes = await fetch(shopUrl, {
+      signal: controller.signal,
+      cache: "no-store",
+    });
+
+    clearTimeout(timeout);
+
+    const existing = await checkRes.json();
+    if (existing) {
       return NextResponse.json(
         { error: "Subdomain sudah digunakan" },
         { status: 409 }
       );
     }
 
-    await ref.set({
-      name,
-      wa,
-      sheetUrl,
-      theme,
-      active: true,
-      createdAt: Date.now(),
+    // SIMPAN DATA
+    const saveRes = await fetch(shopUrl, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        wa,
+        sheetUrl,
+        theme,
+        active: true,
+        createdAt: Date.now(),
+      }),
     });
+
+    if (!saveRes.ok) {
+      throw new Error("Gagal menyimpan data");
+    }
 
     return NextResponse.json({
       success: true,
@@ -58,8 +82,9 @@ export async function POST(req) {
     });
   } catch (err) {
     console.error("[REGISTER SHOP ERROR]", err);
+
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Server error / timeout" },
       { status: 500 }
     );
   }
