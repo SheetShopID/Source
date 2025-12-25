@@ -1,4 +1,5 @@
-/* --- CSS RESET & GLOBAL --- */
+:global(html),
+:global(body),
 :global(*) {
   box-sizing: border-box;
   margin: 0;
@@ -12,6 +13,7 @@
   line-height: 1.5;
   padding: 20px;
 }
+
 
 .container { max-width: 1200px; margin: 0 auto; }
 .header { margin-bottom: 2rem; text-align: center; }
@@ -79,4 +81,5 @@
 .error { border-left-color: #ef4444; }
 .toastContent h4 { font-size: 0.95rem; margin-bottom: 2px; }
 .toastContent p { font-size: 0.85rem; color: #64748b; }
+
 
