@@ -64,19 +64,21 @@ function addSecurityHeaders(res) {
   res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 
-  // ✅ Izinkan fetch dan image dari domain eksternal yang diperlukan
+  // ✅ Izinkan domain eksternal yang dibutuhkan (Google Sheet + Firebase + CDN Google)
   res.headers.set(
     "Content-Security-Policy",
     [
       "default-src 'self';",
-      "connect-src 'self' https://docs.google.com https://firebasestorage.googleapis.com;",
+      "connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://firebasestorage.googleapis.com;",
       "img-src 'self' data: https://*;",
       "style-src 'self' 'unsafe-inline';",
       "script-src 'self' 'unsafe-inline';",
     ].join(" ")
   );
+
   return res;
 }
+
 
 /**
  * Jalankan middleware untuk semua route kecuali API dan aset statis.
