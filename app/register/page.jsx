@@ -66,7 +66,6 @@ export default function RegisterPage() {
 
   return (
     <>
-      <div className={styles.rootReset}></div>
       <div className={styles.container}>
         <header className={styles.header}>
           <h1>Tokoinstan</h1>
@@ -215,4 +214,5 @@ export default function RegisterPage() {
     </>
   );
 }
+
 
