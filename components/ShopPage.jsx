@@ -140,7 +140,22 @@ const totalPrice = cartItems.reduce((a, [_, v]) => a + (v.price + v.fee) * v.qty
           <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Tagline Produk . .</h1>
           <p style={{ marginTop: 6, fontSize: 13, color: "#6b6b6b" }}>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum, atau sekitarnya!</p>
         </div>
-        <div style={{ background: "#2f8f4a", color: "#fff", padding: "8px 10px", borderRadius: 12, fontSize: 13, position: "absolute", right: 23,zIndex: 11,top: 16px; }}>Open • Hari ini</div>
+        <div
+          style={{
+            background: "#2f8f4a",
+            color: "#fff",
+            padding: "8px 10px",
+            borderRadius: 12,
+            fontSize: 13,
+            position: "absolute",
+            right: 23,
+            top: 16,     // ✅ tambahkan baris ini
+            zIndex: 11,  // ✅ tetap di sini
+          }}
+        >
+          Open • Hari ini
+        </div>
+
       </section>
 
       {/* CATEGORY FILTER */}
