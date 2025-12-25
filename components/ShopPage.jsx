@@ -147,7 +147,7 @@ const totalPrice = cartItems.reduce((a, [_, v]) => a + (v.price + v.fee) * v.qty
             padding: "8px 10px",
             borderRadius: 12,
             fontSize: 13,
-            position: "absolute",
+            position: "fixed",
             right: 23,
             top: 16,     // ✅ tambahkan baris ini
             zIndex: 11,  // ✅ tetap di sini
