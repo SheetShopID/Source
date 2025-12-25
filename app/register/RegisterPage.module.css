@@ -1,19 +1,3 @@
-.rootReset {
-  :global(*) {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-
-  :global(body) {
-    background-color: #f8fafc;
-    color: #1e293b;
-    line-height: 1.5;
-    padding: 20px;
-  }
-}
-
 .container { max-width: 1200px; margin: 0 auto; }
 .header { margin-bottom: 2rem; text-align: center; }
 .header h1 { font-size: 2rem; font-weight: 800; color: #2563eb; letter-spacing: -0.05em; }
@@ -80,6 +64,7 @@
 .error { border-left-color: #ef4444; }
 .toastContent h4 { font-size: 0.95rem; margin-bottom: 2px; }
 .toastContent p { font-size: 0.85rem; color: #64748b; }
+
 
 
 
