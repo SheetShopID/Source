@@ -1,33 +1,29 @@
 "use client";
+
 import { useEffect, useState, useMemo } from "react";
 import JastipTemplate from "./templates/JastipTemplate";
 import FoodTemplate from "./templates/FoodTemplate";
 import LaundryTemplate from "./templates/LaundryTemplate";
 import { formatRp } from "@/lib/utils";
 import { parseCSV, convertSheetToCSVUrl } from "@/lib/csv";
- 
-/******************************
- * MAIN COMPONENT
- ******************************/
+
 export default function ShopPage({ shop }) {
   const [shopData, setShopData] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /******************************
-   * LOAD DATA
-   ******************************/
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [cart, setCart] = useState({}); // {productName: {qty, price, fee}}
+
+  // LOAD DATA
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`/api/get-shop?shop=${shop}`, {
-          cache: "no-store",
-        });
-
+        const res = await fetch(`/api/get-shop?shop=${shop}`, { cache: "no-store" });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error || "Toko tidak ditemukan");
@@ -36,28 +32,22 @@ export default function ShopPage({ shop }) {
         const shopJson = await res.json();
         setShopData(shopJson);
 
-        // Load products from Google Sheet
         if (shopJson.sheetUrl) {
           const csvUrl = convertSheetToCSVUrl(shopJson.sheetUrl);
           const csvRes = await fetch(csvUrl);
-
-          if (!csvRes.ok) {
-            throw new Error("Gagal mengambil data produk");
-          }
+          if (!csvRes.ok) throw new Error("Gagal mengambil data produk");
 
           const csvText = await csvRes.text();
           const parsed = parseCSV(csvText);
-
-          setProducts(
-            parsed.map((p) => ({
-              name: p.name,
-              price: p.price || 0,
-              img: p.img || "",
-              fee: p.fee || 0,
-              category: p.category || "",
-              promo: p.promo || "",
-            }))
-          );
+          setProducts(parsed.map(p => ({
+            name: p.name,
+            price: Number(p.price) || 0,
+            img: p.img || "",
+            fee: Number(p.fee) || 0,
+            category: p.category || "",
+            promo: p.promo || "",
+            shopName: p.shopName || shopJson.name,
+          })));
         }
       } catch (e) {
         console.error("[SHOP PAGE]", e);
@@ -70,63 +60,166 @@ export default function ShopPage({ shop }) {
     load();
   }, [shop]);
 
-  /******************************
-   * TEMPLATE SELECTOR
-   ******************************/
+  // TEMPLATE SELECTOR
   const Template = useMemo(() => {
     if (!shopData) return null;
-
     switch (shopData.theme) {
-      case "makanan":
-        return FoodTemplate;
-      case "laundry":
-        return LaundryTemplate;
-      default:
-        return JastipTemplate;
+      case "makanan": return FoodTemplate;
+      case "laundry": return LaundryTemplate;
+      default: return JastipTemplate;
     }
   }, [shopData]);
 
-  /******************************
-   * UI STATES
-   ******************************/
-  if (loading) {
-    return <div className="p-10 text-center text-gray-500">Memuat toko...</div>;
-  }
+  // CART HANDLERS
+  const addToCart = (item, quickBuy = false) => {
+    setCart(prev => {
+      const existing = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
+      const newQty = existing.qty + 1;
+      return { ...prev, [item.name]: { ...existing, qty: newQty } };
+    });
+    if (quickBuy) checkout();
+  };
 
-  if (error) {
-    return <div className="p-10 text-center text-red-600">{error}</div>;
-  }
+  const removeFromCart = (name) => {
+    setCart(prev => {
+      const copy = { ...prev };
+      delete copy[name];
+      return copy;
+    });
+  };
 
-  if (!shopData) {
-    return <div className="p-10 text-center text-red-600">Toko tidak ditemukan</div>;
-  }
+  const changeQty = (name, delta) => {
+    setCart(prev => {
+      const copy = { ...prev };
+      if (!copy[name]) return copy;
+      copy[name].qty += delta;
+      if (copy[name].qty <= 0) delete copy[name];
+      return copy;
+    });
+  };
 
-  /******************************
-   * RENDER
-   ******************************/
+  const checkout = () => {
+    const items = Object.entries(cart)
+      .map(([name, data]) => `${name} x${data.qty} - Rp${formatRp(data.price * data.qty + data.fee * data.qty)}`)
+      .join("\n");
+    const waLink = `https://wa.me/${shopData?.wa}?text=${encodeURIComponent(items || "Saya ingin order")}`;
+    window.open(waLink, "_blank");
+  };
+
+  if (loading) return <div className="p-10 text-center text-gray-500">Memuat toko...</div>;
+  if (error) return <div className="p-10 text-center text-red-600">{error}</div>;
+  if (!shopData) return <div className="p-10 text-center text-red-600">Toko tidak ditemukan</div>;
+
+  // UNIQUE CATEGORY LIST
+  const categories = ["Semua", ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+
+  // FILTERED PRODUCTS
+  const filteredProducts = selectedCategory && selectedCategory !== "Semua"
+    ? products.filter(p => p.category === selectedCategory)
+    : products;
+
   return (
     <main>
-      <header className={`app-header theme-${shopData.theme}`}>
-        <div className="pt-[40px] pb-4 px-4 text-center">
-          <h1 className="shop-name">{shopData.name}</h1>
-          <div className="shop-tagline">
-            {shopData.subdomain}.tokoinstan.online
-          </div>
+      {/* HEADER */}
+      <header style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderBottom: "1px solid #e6efe6", position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: "#2f8f4a", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>JA</div>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>{shopData.name}</div>
+          <div style={{ fontSize: 12, color: "#6b6b6b" }}>{shopData.subdomain}.tokoinstan.online</div>
         </div>
       </header>
 
-      <div className={`app-content theme-${shopData.theme}`}>
-        <Template products={products} utils={{ formatRp }} />
+      {/* HERO */}
+      <section style={{ background: "#fff", padding: 14, borderRadius: 16, boxShadow: "0 4px 10px rgba(0,0,0,0.08)", display: "flex", gap: 14, alignItems: "center", position: "relative", margin: "14px" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Tagline Produk . .</h1>
+          <p style={{ marginTop: 6, fontSize: 13, color: "#6b6b6b" }}>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum, atau sekitarnya!</p>
+        </div>
+        <div style={{ background: "#2f8f4a", color: "#fff", padding: "8px 10px", borderRadius: 12, fontSize: 13, position: "absolute", right: 23 }}>Open • Hari ini</div>
+      </section>
+
+      {/* CATEGORY FILTER */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "16px 14px 12px" }}>
+        {categories.map(cat => (
+          <div key={cat}
+            style={{
+              padding: "8px 16px",
+              fontSize: 13,
+              fontWeight: 500,
+              borderRadius: 999,
+              cursor: "pointer",
+              border: "1px solid #dfe7df",
+              background: selectedCategory === cat || (cat==="Semua" && selectedCategory==="") ? "#2f8f4a" : "#fff",
+              color: selectedCategory === cat || (cat==="Semua" && selectedCategory==="") ? "#fff" : "#000"
+            }}
+            onClick={() => setSelectedCategory(cat === "Semua" ? "" : cat)}
+          >
+            {cat}
+          </div>
+        ))}
       </div>
 
-      <a
-        href={`https://wa.me/${shopData.wa}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="float-wa"
+      {/* TEMPLATE GRID */}
+      <Template products={filteredProducts} utils={{ formatRp }} addToCart={addToCart} />
+
+      {/* FLOATING CART ICON */}
+      <button
+        style={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          background: "#2f8f4a",
+          color: "#fff",
+          fontSize: 22,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 50
+        }}
+        onClick={() => setCart(prev => ({ ...prev, open: !prev.open }))}
       >
-        💬
-      </a>
+        🛒
+        {Object.keys(cart).length > 0 && <span style={{ position: "absolute", top: 4, right: 6, background: "#ff5757", color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 10 }}>{Object.values(cart).reduce((a,b)=>a+b.qty,0)}</span>}
+      </button>
+
+      {/* CART DRAWER */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: "#fff",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        boxShadow: "-2px -2px 24px rgba(0,0,0,0.15)",
+        padding: 20,
+        transform: cart.open ? "translateY(0)" : "translateY(100%)",
+        transition: "transform 0.22s cubic-bezier(.25,.1,.25,1)",
+        zIndex: 100
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <h3>🛍️ Pesanan Kamu</h3>
+          <button onClick={() => setCart(prev => ({ ...prev, open: false }))} style={{ fontSize: 22, cursor: "pointer" }}>−</button>
+        </div>
+        <div>
+          {Object.entries(cart).map(([name, item]) => (
+            <div key={name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "8px 0", borderBottom: "1px solid #eee", paddingBottom: 6 }}>
+              <div>{name}<br /><small>Rp{formatRp(item.price)}</small></div>
+              <div>
+                <button onClick={() => changeQty(name, -1)}>-</button>
+                <span>{item.qty}</span>
+                <button onClick={() => changeQty(name, 1)}>+</button>
+                <button onClick={() => removeFromCart(name)}>❌</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 8, fontWeight: 700 }}>Total: Rp{formatRp(Object.values(cart).reduce((a,b)=>a+(b.price+b.fee)*b.qty,0))}</div>
+        <button onClick={checkout} style={{ background: "#2f8f4a", color: "#fff", border: 0, padding: 10, width: "100%", borderRadius: 10, fontWeight: 600, marginTop: 12 }}>Kirim via WhatsApp</button>
+      </div>
     </main>
   );
 }
