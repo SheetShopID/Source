@@ -111,20 +111,29 @@ export default function ShopPage({ shop }) {
   };
 
   const checkout = () => {
-    const items = Object.entries(cart)
-      .map(
-        ([name, data]) =>
-          `${name} x${data.qty} - Rp${formatRp(
-            (data.price + data.fee) * data.qty
-          )}`
-      )
-      .join("\n");
+      const items = Object.entries(cart)
+        .map(
+          ([name, data]) =>
+            `${name} x${data.qty} - Rp${formatRp(
+              (data.price + data.fee) * data.qty
+            )}`
+        )
+        .join("\n");
+    
+      const waLink = `https://wa.me/${shopData?.wa}?text=${encodeURIComponent(
+        items || "Saya ingin order"
+      )}`;
+    
+      // Buka WhatsApp
+      window.open(waLink, "_blank");
+    
+      // ✅ Reset keranjang setelah 1 detik (memberi waktu browser buka WA)
+      setTimeout(() => {
+        setCart({});
+        setCartOpen(false);
+      }, 1000);
+    };
 
-    const waLink = `https://wa.me/${shopData?.wa}?text=${encodeURIComponent(
-      items || "Saya ingin order"
-    )}`;
-    window.open(waLink, "_blank");
-  };
 
   /******************************
    * RENDER STATES
