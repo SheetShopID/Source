@@ -117,6 +117,11 @@ export default function ShopPage({ shop }) {
   const filteredProducts = selectedCategory && selectedCategory !== "Semua"
     ? products.filter(p => p.category === selectedCategory)
     : products;
+  
+// 💡 Tambahkan fungsi bantu di atas return
+const cartItems = Object.entries(cart).filter(([key]) => key !== "open");
+const totalQty = cartItems.reduce((a, [_, v]) => a + v.qty, 0);
+const totalPrice = cartItems.reduce((a, [_, v]) => a + (v.price + v.fee) * v.qty, 0);
 
   return (
     <main>
@@ -135,7 +140,7 @@ export default function ShopPage({ shop }) {
           <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Tagline Produk . .</h1>
           <p style={{ marginTop: 6, fontSize: 13, color: "#6b6b6b" }}>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum, atau sekitarnya!</p>
         </div>
-        <div style={{ background: "#2f8f4a", color: "#fff", padding: "8px 10px", borderRadius: 12, fontSize: 13, position: "absolute", right: 23, z-index: 11,top: 16px; }}>Open • Hari ini</div>
+        <div style={{ background: "#2f8f4a", color: "#fff", padding: "8px 10px", borderRadius: 12, fontSize: 13, position: "absolute", right: 23,zIndex: 11,top: 16px; }}>Open • Hari ini</div>
       </section>
 
       {/* CATEGORY FILTER */}
@@ -162,28 +167,48 @@ export default function ShopPage({ shop }) {
       {/* TEMPLATE GRID */}
       <Template products={filteredProducts} utils={{ formatRp }} addToCart={addToCart} />
 
-      {/* FLOATING CART ICON */}
-      <button
-        style={{
-          position: "fixed",
-          bottom: 16,
-          right: 16,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          background: "#2f8f4a",
-          color: "#fff",
-          fontSize: 22,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 50
-        }}
-        onClick={() => setCart(prev => ({ ...prev, open: !prev.open }))}
-      >
-        🛒
-        {Object.keys(cart).length > 0 && <span style={{ position: "absolute", top: 4, right: 6, background: "#ff5757", color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 10 }}>{Object.values(cart).reduce((a,b)=>a+b.qty,0)}</span>}
-      </button>
+     {/* FLOATING CART ICON */}
+    <button
+      style={{
+        position: "fixed",
+        bottom: 16,
+        right: 16,
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        background: "#2f8f4a",
+        color: "#fff",
+        fontSize: 22,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => setCart(prev => ({ ...prev, open: !prev.open }))}
+    >
+      🛒
+      {totalQty > 0 && (
+        <span
+          style={{
+            position: "absolute",
+            top: 4,
+            right: 6,
+            background: "#ff5757",
+            color: "#fff",
+            fontSize: 12,
+            padding: "2px 6px",
+            borderRadius: 10,
+            display: "inline-block",
+          }}
+        >
+          {totalQty}
+        </span>
+      )}
+    </button>
+
 
       {/* CART DRAWER */}
       <div style={{
