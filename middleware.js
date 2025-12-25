@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 
 /**
  * Middleware untuk menangani multi-subdomain pada domain tokoinstan.online
- * dan mengarahkan domain utama ke halaman register.
+ * dan menambahkan header keamanan.
  */
 export function middleware(req) {
   const host = req.headers.get("host")?.toLowerCase() || "";
   const url = new URL(req.url);
 
-  // 🧩 Deteksi environment (misalnya: localhost, vercel, production)
+  // 🧩 Deteksi environment (localhost, vercel, production)
   const isLocalhost = host.includes("localhost");
   const isVercel = host.includes("vercel.app");
   const isProduction = host.includes("tokoinstan.online");
@@ -25,27 +25,26 @@ export function middleware(req) {
     : parts[0];
 
   // 🌐 Jika domain utama → arahkan ke halaman /register
-  if (
-    !sub ||
-    sub === "tokoinstan" ||
-    sub === "www" ||
-    sub === "api"
-  ) {
-    return NextResponse.rewrite(new URL("/register", req.url));
+  if (!sub || sub === "tokoinstan" || sub === "www" || sub === "api") {
+    const res = NextResponse.rewrite(new URL("/register", req.url));
+    addSecurityHeaders(res);
+    return res;
   }
 
-  // 🚧 Filter: Hanya domain utama yang boleh di-handle
+  // 🚧 Filter: hanya domain terdaftar yang boleh di-handle
   if (!isLocalhost && !isProduction && !isVercel) {
-    return NextResponse.json(
-      { error: "Domain tidak dikenal." },
-      { status: 403 }
-    );
+    const res = NextResponse.json({ error: "Domain tidak dikenal." }, { status: 403 });
+    addSecurityHeaders(res);
+    return res;
   }
 
   // 🏷️ Tambahkan header agar bisa digunakan oleh app/page.jsx
   const res = NextResponse.next();
   res.headers.set("x-shop-id", sub);
   res.headers.set("x-shop-origin", host);
+
+  // 🔒 Tambahkan security headers
+  addSecurityHeaders(res);
 
   // 🪵 Logging untuk development
   if (process.env.NODE_ENV === "development") {
@@ -56,10 +55,27 @@ export function middleware(req) {
 }
 
 /**
+ * 🔒 Tambahkan security headers untuk mencegah exploit umum
+ */
+function addSecurityHeaders(res) {
+  res.headers.set("X-Frame-Options", "DENY"); // cegah embedding iframe
+  res.headers.set("X-Content-Type-Options", "nosniff"); // cegah MIME sniffing
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin"); // batasi referer
+  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); // batasi API browser
+  res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload"); // paksa HTTPS
+  // Opsional: kebijakan konten sederhana, aman untuk Next.js
+  res.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; img-src * data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';"
+  );
+  return res;
+}
+
+/**
  * Jalankan middleware untuk semua route kecuali API dan aset statis.
  */
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt).*)",
   ],
 };
