@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import styles from "./RegisterPage.module.css"; // ✅ Import CSS Module
+import styles from "./RegisterPage.module.css";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -66,6 +66,7 @@ export default function RegisterPage() {
 
   return (
     <>
+      <div className={styles.rootReset}></div>
       <div className={styles.container}>
         <header className={styles.header}>
           <h1>Tokoinstan</h1>
@@ -214,3 +215,4 @@ export default function RegisterPage() {
     </>
   );
 }
+
