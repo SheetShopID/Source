@@ -1,0 +1,188 @@
+/* --- CSS VARIABLES & RESET --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  line-height: 1.5;
+  padding: 20px;
+}
+
+/* --- LAYOUT --- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+.header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: -0.05em;
+}
+.header p {
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.splitLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .splitLayout {
+    grid-template-columns: 1fr;
+  }
+  .previewColumn {
+    order: -1;
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+  }
+}
+
+/* --- CARD --- */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+/* --- FORM ELEMENTS --- */
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+.formLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.formInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+.formInput:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.inputWrapper {
+  position: relative;
+}
+.inputSuffix {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* --- THEME CARDS --- */
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.themeCard {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.themeCard:hover {
+  border-color: #1d4ed8;
+  background: #f0f7ff;
+}
+.themeCard.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+.themeIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.themeTitle {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* --- BUTTON --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.875rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btnPrimary {
+  background: #2563eb;
+  color: white;
+}
+.btnPrimary:hover {
+  background: #1d4ed8;
+}
+.btnPrimary:disabled {
+  background: #64748b;
+  cursor: not-allowed;
+}
+
+/* --- TOAST --- */
+.toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+.toast {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-left: 4px solid #2563eb;
+}
+.toast.show {
+  transform: translateX(0);
+}
+.toast.success {
+  border-left-color: #22c55e;
+}
+.toast.error {
+  border-left-color: #ef4444;
+}
