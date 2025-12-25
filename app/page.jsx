@@ -6,7 +6,7 @@ export default function Home() {
 
   if (!shop) {
     return (
-      <div style={{ padding: 20 }}>
+      <div>
         <h1>Selamat datang di TokoInstan</h1>
         <p>Gunakan subdomain seperti jastip.tokoinstan.online</p>
       </div>
