@@ -135,7 +135,7 @@ export default function ShopPage({ shop }) {
           <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Tagline Produk . .</h1>
           <p style={{ marginTop: 6, fontSize: 13, color: "#6b6b6b" }}>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum, atau sekitarnya!</p>
         </div>
-        <div style={{ background: "#2f8f4a", color: "#fff", padding: "8px 10px", borderRadius: 12, fontSize: 13, position: "absolute", right: 23 }}>Open • Hari ini</div>
+        <div style={{ background: "#2f8f4a", color: "#fff", padding: "8px 10px", borderRadius: 12, fontSize: 13, position: "absolute", right: 23, z-index: 11,top: 16px; }}>Open • Hari ini</div>
       </section>
 
       {/* CATEGORY FILTER */}
