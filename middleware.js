@@ -58,15 +58,22 @@ export function middleware(req) {
  * 🔒 Tambahkan security headers untuk mencegah exploit umum
  */
 function addSecurityHeaders(res) {
-  res.headers.set("X-Frame-Options", "DENY"); // cegah embedding iframe
-  res.headers.set("X-Content-Type-Options", "nosniff"); // cegah MIME sniffing
-  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin"); // batasi referer
-  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); // batasi API browser
-  res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload"); // paksa HTTPS
-  // Opsional: kebijakan konten sederhana, aman untuk Next.js
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+
+  // ✅ Izinkan fetch dan image dari domain eksternal yang diperlukan
   res.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; img-src * data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';"
+    [
+      "default-src 'self';",
+      "connect-src 'self' https://docs.google.com https://firebasestorage.googleapis.com;",
+      "img-src 'self' data: https://*;",
+      "style-src 'self' 'unsafe-inline';",
+      "script-src 'self' 'unsafe-inline';",
+    ].join(" ")
   );
   return res;
 }
