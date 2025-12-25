@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import styles from "./RegisterPage.module.css";
+import styles from "./RegisterPage.module.css"; // ✅ Import CSS Module
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
