@@ -165,10 +165,32 @@ export default function ShopPage({ shop }) {
       />
 
       {/* FLOATING CART ICON */}
-      <button className={styles.cartIcon} onClick={() => setCartOpen(!cartOpen)}>
-        🛒
-        {totalQty > 0 && <span className={styles.cartCount}>{totalQty}</span>}
+     <button
+        className={styles.cartIcon}
+        onClick={() => setCartOpen(!cartOpen)}
+        aria-label="Cart"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="9" cy="21" r="1" />
+          <circle cx="20" cy="21" r="1" />
+          <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
+        </svg>
+      
+        {totalQty > 0 && (
+          <span className={styles.cartCount}>{totalQty}</span>
+        )}
       </button>
+
 
       {/* CART DRAWER */}
       <div className={`${styles.cartDrawer} ${cartOpen ? styles.active : ""}`}>
