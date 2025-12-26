@@ -1,5 +1,6 @@
 .list {
   padding: 0 14px;
+  background-color:#FFFFFF;
 }
 
 .row {
@@ -74,9 +75,4 @@
 
 .addBtn:hover {
   background: #eaf7eb;
-}
-
-section{
-  background-color:#FFFFFF;
-}
-
+} 
