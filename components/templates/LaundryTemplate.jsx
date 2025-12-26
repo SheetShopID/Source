@@ -22,7 +22,7 @@ export default function LaundryTemplate({ products, utils, addToCart, setSelecte
       {/* LIST PRODUK */}
       <div className={styles.list}>
         {products.map((item, idx) => {
-          const isMembership = item.promo?.toLowerCase().includes("Ya");
+          const isMembership = item.promo?.toLowerCase().includes("ya");
           return (
             <div
               key={idx}
@@ -79,4 +79,5 @@ export default function LaundryTemplate({ products, utils, addToCart, setSelecte
 }
 
 export const previewImage = "/preview/laundry.jpg";
+
 
