@@ -68,7 +68,7 @@ export default function ShopPage({ shop }) {
     }
   }, [shopData]);
 
-  // CART HANDLER
+  // CART HANDLERs
   const addToCart = (item, quickBuy = false) => {
     setCart((prev) => {
       const existing = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
