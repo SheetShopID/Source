@@ -15,9 +15,9 @@ export default function RegisterPage() {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [previewCart, setPreviewCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const timeoutRef = useRef(null);
 
-  // Input handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
@@ -63,34 +63,15 @@ export default function RegisterPage() {
     }
   };
 
-  // Preview dummy data
   const previewData = [
-    {
-      img: "https://picsum.photos/seed/prod1/200/200",
-      name: "Kopi Kenangan",
-      fee: 5000,
-      price: 25000,
-      promo: "Diskon 10%",
-      category: "Minuman",
-    },
-    {
-      img: "https://picsum.photos/seed/prod2/200/200",
-      name: "Scarlett Serum",
-      fee: 8000,
-      price: 150000,
-      promo: "",
-      category: "Skincare",
-    },
+    { img: "https://picsum.photos/seed/prod1/200/200", name: "Kopi Kenangan", fee: 5000, price: 25000, promo: "Diskon 10%", category: "Minuman" },
+    { img: "https://picsum.photos/seed/prod2/200/200", name: "Scarlett Serum", fee: 8000, price: 150000, promo: "", category: "Skincare" },
   ];
 
-  const themeColors = {
-    jastip: "#2f8f4a",
-    makanan: "#f97316",
-    laundry: "#3b82f6",
-  };
+  const themeColors = { jastip: "#2f8f4a", makanan: "#f97316", laundry: "#3b82f6" };
   const themeColor = themeColors[form.theme] || "#2f8f4a";
 
-  // Simulasi cart untuk preview
+  // Simulasi Cart Preview
   const addToCart = (item) => {
     setPreviewCart((prev) => {
       const existing = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
@@ -120,10 +101,7 @@ export default function RegisterPage() {
 
   const cartItems = Object.entries(previewCart);
   const totalQty = cartItems.reduce((a, [_, v]) => a + v.qty, 0);
-  const totalPrice = cartItems.reduce(
-    (a, [_, v]) => a + (v.price + v.fee) * v.qty,
-    0
-  );
+  const totalPrice = cartItems.reduce((a, [_, v]) => a + (v.price + v.fee) * v.qty, 0);
 
   return (
     <>
@@ -140,186 +118,95 @@ export default function RegisterPage() {
               <form onSubmit={handleSubmit}>
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Nama Toko</label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    placeholder="Contoh: Jastip Seoul Keren"
-                    name="name"
-                    value={form.name}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <input type="text" className={styles.formInput} name="name" placeholder="Contoh: Jastip Seoul Keren" value={form.name} onChange={handleInputChange} required />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Nomor WhatsApp</label>
-                  <input
-                    type="tel"
-                    className={styles.formInput}
-                    placeholder="81234567890"
-                    name="wa"
-                    value={form.wa}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <input type="tel" className={styles.formInput} name="wa" placeholder="81234567890" value={form.wa} onChange={handleInputChange} required />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Subdomain Toko</label>
                   <div className={styles.inputWrapper}>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      placeholder="tokosaya"
-                      name="subdomain"
-                      value={form.subdomain}
-                      onChange={handleSubdomainChange}
-                      required
-                    />
+                    <input type="text" className={styles.formInput} name="subdomain" placeholder="tokosaya" value={form.subdomain} onChange={handleSubdomainChange} required />
                     <span className={styles.inputSuffix}>.tokoinstan.online</span>
                   </div>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Link Google Sheet (CSV)</label>
-                  <input
-                    type="url"
-                    className={styles.formInput}
-                    placeholder="https://docs.google.com/spreadsheets/d/..."
-                    name="sheetUrl"
-                    value={form.sheetUrl}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <input type="url" className={styles.formInput} name="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." value={form.sheetUrl} onChange={handleInputChange} required />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Pilih Tema</label>
                   <div className={styles.themeGrid}>
                     {["jastip", "makanan", "laundry"].map((t) => (
-                      <div
-                        key={t}
-                        className={`${styles.themeCard} ${
-                          form.theme === t ? styles.active : ""
-                        }`}
-                        onClick={() => handleThemeSelect(t)}
-                      >
-                        <span className={styles.themeIcon}>
-                          {t === "jastip" ? "🛍️" : t === "makanan" ? "🍔" : "👕"}
-                        </span>
-                        <div className={styles.themeTitle}>
-                          {t.charAt(0).toUpperCase() + t.slice(1)}
-                        </div>
+                      <div key={t} className={`${styles.themeCard} ${form.theme === t ? styles.active : ""}`} onClick={() => handleThemeSelect(t)}>
+                        <span className={styles.themeIcon}>{t === "jastip" ? "🛍️" : t === "makanan" ? "🍔" : "👕"}</span>
+                        <div className={styles.themeTitle}>{t.charAt(0).toUpperCase() + t.slice(1)}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                  disabled={loading}
-                >
+                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={loading}>
                   {loading ? "Memproses..." : "Buat Toko Sekarang"}
+                </button>
+
+                {/* ✅ Tombol Preview untuk mobile */}
+                <button type="button" className={styles.btnPreview} onClick={() => setShowPreview(true)}>
+                  📱 Lihat Preview
                 </button>
               </form>
             </div>
           </section>
 
-          {/* PREVIEW SIDE */}
+          {/* PREVIEW SIDE — tampil di desktop */}
           <section className={styles.previewColumn}>
             <div className={styles.previewWrapper}>
               <div className={styles.mobileFrame}>
-                {/* HEADER */}
-                <div
-                  className={styles.appHeader}
-                  style={{ background: themeColor }}
-                >
-                  <div className={styles.shopName}>
-                    {form.name || "Nama Toko"}
-                  </div>
-                  <div className={styles.shopTagline}>
-                    {form.subdomain
-                      ? `${form.subdomain}.tokoinstan.online`
-                      : "tokosaya.tokoinstan.online"}
-                  </div>
+                <div className={styles.appHeader} style={{ background: themeColor }}>
+                  <div className={styles.shopName}>{form.name || "Nama Toko"}</div>
+                  <div className={styles.shopTagline}>{form.subdomain ? `${form.subdomain}.tokoinstan.online` : "tokosaya.tokoinstan.online"}</div>
                 </div>
 
-                {/* HERO */}
                 <div className={styles.heroSection}>
                   <div>
                     <h1>Tagline Produk . .</h1>
                     <p>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum, atau sekitarnya!</p>
                   </div>
-                  <div
-                    className={styles.badge}
-                    style={{ background: themeColor }}
-                  >
-                    Open • Hari ini
-                  </div>
+                  <div className={styles.badge} style={{ background: themeColor }}>Open • Hari ini</div>
                 </div>
 
-                {/* GRID PRODUCT */}
                 <div className={styles.grid}>
                   {previewData.map((item, i) => (
-                    <div
-                      key={i}
-                      className={styles.cardProduct}
-                      onClick={() => addToCart(item)}
-                    >
-                      <div className={styles.img}>
-                        <img src={item.img} alt="" />
-                      </div>
-                      {item.promo && (
-                        <div className={styles.badgePromo}>{item.promo}</div>
-                      )}
+                    <div key={i} className={styles.cardProduct} onClick={() => addToCart(item)}>
+                      <div className={styles.img}><img src={item.img} alt="" /></div>
+                      {item.promo && <div className={styles.badgePromo}>{item.promo}</div>}
                       <div className={styles.pname}>{item.name}</div>
                       <div className={styles.shop}>Demo Shop</div>
-                      <div className={styles.price}>
-                        {formatRp(item.price)} + Fee {formatRp(item.fee)}
-                      </div>
+                      <div className={styles.price}>{formatRp(item.price)} + Fee {formatRp(item.fee)}</div>
                     </div>
                   ))}
                 </div>
 
-                {/* CART ICON */}
-                <div
-                  className={styles.cartIcon}
-                  onClick={() => setCartOpen(!cartOpen)}
-                >
-                  🛒
-                  {totalQty > 0 && (
-                    <span className={styles.cartCount}>{totalQty}</span>
-                  )}
+                <div className={styles.cartIcon} onClick={() => setCartOpen(!cartOpen)}>
+                  🛒{totalQty > 0 && <span className={styles.cartCount}>{totalQty}</span>}
                 </div>
 
-                {/* CART DRAWER PREVIEW */}
-                <div
-                  className={`${styles.cartDrawer} ${
-                    cartOpen ? styles.active : ""
-                  }`}
-                >
+                <div className={`${styles.cartDrawer} ${cartOpen ? styles.active : ""}`}>
                   <div className={styles.cartHeader}>
                     <h3>🛍️ Pesanan Kamu</h3>
-                    <button
-                      onClick={() => setCartOpen(false)}
-                      className={styles.btnMinimize}
-                    >
-                      −
-                    </button>
+                    <button onClick={() => setCartOpen(false)} className={styles.btnMinimize}>−</button>
                   </div>
 
-                  {cartItems.length === 0 && (
-                    <div className={styles.emptyCart}>Keranjang kosong</div>
-                  )}
+                  {cartItems.length === 0 && <div className={styles.emptyCart}>Keranjang kosong</div>}
 
                   {cartItems.map(([name, item]) => (
                     <div key={name} className={styles.cartItem}>
-                      <div className={styles.cartItemName}>
-                        {name}
-                        <br />
-                        <small>Rp{formatRp(item.price)}</small>
-                      </div>
+                      <div className={styles.cartItemName}>{name}<br /><small>{formatRp(item.price)}</small></div>
                       <div className={styles.cartControls}>
                         <button onClick={() => changeQty(name, -1)}>-</button>
                         <span>{item.qty}</span>
@@ -329,11 +216,7 @@ export default function RegisterPage() {
                     </div>
                   ))}
 
-                  {cartItems.length > 0 && (
-                    <div className={styles.cartTotal}>
-                      Total: Rp{formatRp(totalPrice)}
-                    </div>
-                  )}
+                  {cartItems.length > 0 && <div className={styles.cartTotal}>Total: {formatRp(totalPrice)}</div>}
                 </div>
               </div>
             </div>
@@ -341,14 +224,35 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* TOAST */}
+      {/* ✅ Modal Preview untuk Mobile */}
+      {showPreview && (
+        <div className={styles.mobilePreviewOverlay}>
+          <div className={styles.mobilePreviewBox}>
+            <button className={styles.closePreview} onClick={() => setShowPreview(false)}>× Tutup</button>
+            {/* isi preview pakai komponen yang sama */}
+            <div className={styles.previewWrapper}>
+              <div className={styles.mobileFrame}>
+                <div className={styles.appHeader} style={{ background: themeColor }}>
+                  <div className={styles.shopName}>{form.name || "Nama Toko"}</div>
+                  <div className={styles.shopTagline}>{form.subdomain ? `${form.subdomain}.tokoinstan.online` : "tokosaya.tokoinstan.online"}</div>
+                </div>
+                <div className={styles.heroSection}>
+                  <div><h1>Tagline Produk . .</h1><p>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum!</p></div>
+                  <div className={styles.badge} style={{ background: themeColor }}>Open • Hari ini</div>
+                </div>
+                <div className={styles.grid}>
+                  {previewData.map((p,i)=>(
+                    <div key={i} className={styles.cardProduct}><div className={styles.img}><img src={p.img}/></div><div className={styles.pname}>{p.name}</div></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toast.show && (
-        <div
-          className={`${styles.toast} ${
-            toast.type === "success" ? styles.success : styles.error
-          }`}
-          onClick={() => setToast({ show: false })}
-        >
+        <div className={`${styles.toast} ${toast.type === "success" ? styles.success : styles.error}`} onClick={() => setToast({ show: false })}>
           {toast.type === "success" ? "✅" : "⚠️"} {toast.message}
         </div>
       )}
