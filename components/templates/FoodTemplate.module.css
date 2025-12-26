@@ -60,19 +60,21 @@
 
 /* ADD BUTTON */
 .addBtn {
-  position: absolute;
-  bottom: -10px;
-  right: 18px;
-  background: #fff;
-  color: #2f8f4a;
-  border: 2px solid #2f8f4a;
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
+    position: absolute;
+    bottom: -10px;
+    right: 22px;
+    background: #fff;
+    color: #2f8f4a;
+    border: 2px solid #2f8f4a;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1.2px;
 }
 
 .addBtn:hover {
   background: #eaf7eb;
 } 
+
