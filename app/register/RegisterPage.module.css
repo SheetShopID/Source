@@ -12,6 +12,7 @@
 @media (max-width: 900px) {
   .splitLayout { grid-template-columns: 1fr; }
   .previewColumn { order: -1; position: sticky; top: 20px; z-index: 10; }
+  .splitLayout section{margin: 0 auto;width: 88%;padding-bottom: 15px;}
 }
 
 .card { background: #fff; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
@@ -429,5 +430,6 @@
     
   }
 }
+
 
 
