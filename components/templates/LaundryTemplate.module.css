@@ -1,0 +1,166 @@
+.container {
+  padding: 1rem 1rem 3rem;
+  background: #f8fafc;
+}
+
+/* HERO SECTION */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #e0f2fe, #ffffff);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+}
+.heroText {
+  flex: 1;
+  min-width: 200px;
+}
+.heroText h2 {
+  color: #0369a1;
+  font-size: 1.3rem;
+  margin-bottom: 0.3rem;
+}
+.heroText p {
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.heroImg img {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #bae6fd;
+}
+
+/* CARD LIST */
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #e0f2fe;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+.membership {
+  background: #f0f9ff;
+  border-color: #93c5fd;
+}
+
+/* IMAGE */
+.imageBox {
+  position: relative;
+  height: 140px;
+  background: #f0f9ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.imageBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #dbeafe;
+  color: #1e3a8a;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* INFO */
+.info {
+  padding: 0.8rem;
+}
+.info h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+}
+
+/* STATUS + ESTIMASI */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.status {
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+.status.progress {
+  background: #0284c7;
+}
+.status.done {
+  background: #16a34a;
+}
+.status.waiting {
+  background: #94a3b8;
+}
+.estimasi {
+  font-size: 0.8rem;
+  color: #0369a1;
+}
+
+/* PRICE */
+.price {
+  font-weight: 700;
+  color: #0284c7;
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.actions button {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.actions button:first-child {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.actions button:first-child:hover {
+  background: #bae6fd;
+}
+.actions button:last-child {
+  background: #0284c7;
+  color: #fff;
+}
+.actions button:last-child:hover {
+  background: #0369a1;
+}
