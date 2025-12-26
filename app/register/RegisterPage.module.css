@@ -65,6 +65,87 @@
 .toastContent h4 { font-size: 0.95rem; margin-bottom: 2px; }
 .toastContent p { font-size: 0.85rem; color: #64748b; }
 
-
-
-
+.cartIcon {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  background: #2f8f4a;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 20;
+}
+.cartCount {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: #ff5757;
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+.cartDrawer {
+  position: absolute;
+  bottom: -100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  box-shadow: -2px -2px 24px rgba(0,0,0,0.2);
+  padding: 10px;
+  transition: all 0.25s ease;
+}
+.cartDrawer.active {
+  bottom: 0;
+}
+.cartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.btnMinimize {
+  background: rgba(0,0,0,0.08);
+  border: none;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+.cartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 4px 0;
+}
+.cartItemName small {
+  color: #64748b;
+}
+.cartControls button {
+  margin: 0 2px;
+  border: none;
+  background: #eef6ee;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.cartTotal {
+  font-weight: 700;
+  margin-top: 6px;
+}
+.emptyCart {
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+}
