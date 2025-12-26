@@ -135,6 +135,7 @@
   left: 0;
   right: 0;
   background: #fff;
+  color: #111;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   box-shadow: -2px -2px 24px rgba(0, 0, 0, 0.15);
@@ -143,6 +144,20 @@
   z-index: 100;
 }
 
+.cartItemName {
+  font-size: 13px;
+  color: #111; /* ✅ Pastikan teks item selalu terlihat */
+}
+
+.cartControls span {
+  color: #111; /* ✅ Angka qty juga tetap gelap */
+}
+
+.cartTotal {
+  margin-top: 8px;
+  font-weight: 700;
+  color: #111; /* ✅ Total harga tampil jelas */
+}
 .cartDrawer.active {
   bottom: 0;
   transform: translateY(0);
@@ -204,3 +219,4 @@
   color: #666;
   font-size: 13px;
 }
+
