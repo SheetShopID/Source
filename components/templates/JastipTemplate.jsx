@@ -5,15 +5,17 @@ export default function JastipTemplate({ products, utils, addToCart, setSelected
     <section className={styles.grid}>
       {products.map((item, idx) => (
         <div key={idx} onClick={() => setSelectedProduct(item)} className={styles.card}>
+         {/* PROMO BADGE */}
+          {item.promo === "Ya" && (
+            <div className={styles.promoBadge}>PROMO</div>
+          )}
+          
           <div className={styles.img}>
             <img
               src={item.img || "https://via.placeholder.com/100"}
               alt={item.name}
             />
           </div>
-
-          {item.promo && <div className={styles.badge}>{item.promo}</div>}
-
           <div className={styles.name}>{item.name}</div>
           <div className={styles.shop}>{item.shopName}</div>
           <div className={styles.price}>
