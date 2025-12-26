@@ -41,12 +41,218 @@
 .btnPrimary:hover { background: #1d4ed8; }
 .btnPrimary:disabled { background: #64748b; cursor: not-allowed; }
 
-.previewWrapper { display: flex; justify-content: center; perspective: 1000px; }
-.mobileFrame { width: 375px; height: 667px; background: #fff; border: 12px solid #1e293b; border-radius: 36px; overflow: hidden; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+/* FRAME PREVIEW MOBILE */
+.previewWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  perspective: 1000px;
+}
 
-.appHeader { background: #2563eb; color: white; padding: 40px 16px 16px; text-align: center; }
-.shopName { font-size: 1.25rem; font-weight: 700; }
-.shopTagline { font-size: 0.75rem; opacity: 0.9; margin-top: 4px; }
+.mobileFrame {
+  width: 360px;
+  height: 640px;
+  background: #fff;
+  border: 12px solid #1e293b;
+  border-radius: 36px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+/* HEADER */
+.appHeader {
+  color: #fff;
+  padding: 32px 16px 12px;
+  text-align: center;
+}
+.shopName {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.shopTagline {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+/* HERO */
+.heroSection {
+  background: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 8px;
+  font-size: 13px;
+  position: relative;
+  border: 1px solid #e5e5e5;
+}
+.heroSection h1 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+.heroSection p {
+  color: #64748b;
+  font-size: 12px;
+  margin: 0;
+}
+.badge {
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+/* GRID PRODUCT PREVIEW */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  overflow-y: auto;
+}
+.cardProduct {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+.cardProduct:hover {
+  transform: translateY(-2px);
+}
+.img {
+  width: 100%;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pname {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.shop {
+  font-size: 11px;
+  color: #64748b;
+}
+.price {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+.badgePromo {
+  background: #ffedd5;
+  color: #c2410c;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+/* CART ICON — tetap di dalam frame */
+.cartIcon {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 42px;
+  height: 42px;
+  background: #2f8f4a;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 20;
+}
+.cartCount {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: #ff5757;
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+/* CART DRAWER (di dalam frame) */
+.cartDrawer {
+  position: absolute;
+  bottom: -100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: -2px -2px 24px rgba(0,0,0,0.25);
+  padding: 10px;
+  transition: all 0.25s ease;
+  z-index: 30;
+  max-height: 55%;
+  overflow-y: auto;
+}
+.cartDrawer.active {
+  bottom: 0;
+}
+.cartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.btnMinimize {
+  background: rgba(0,0,0,0.08);
+  border: none;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+.cartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 4px 0;
+}
+.cartItemName small {
+  color: #64748b;
+}
+.cartControls button {
+  margin: 0 2px;
+  border: none;
+  background: #eef6ee;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.cartTotal {
+  font-weight: 700;
+  margin-top: 6px;
+}
+.emptyCart {
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+}
 
 .appContent { flex: 1; overflow-y: auto; background: #ffffff; padding: 16px; }
 
@@ -149,3 +355,4 @@
   font-size: 12px;
   color: #64748b;
 }
+
