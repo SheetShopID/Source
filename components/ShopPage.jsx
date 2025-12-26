@@ -201,27 +201,47 @@ export default function ShopPage({ shop }) {
 
       {/* PRODUCT DETAIL MODAL */}
       {selectedProduct && (
-        <div className={styles.modalBackdrop} onClick={() => setSelectedProduct(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalClose} onClick={() => setSelectedProduct(null)}>×</button>
-            <img
-              src={selectedProduct.img || "https://via.placeholder.com/200"}
-              alt={selectedProduct.name}
-              className={styles.modalImg}
-            />
-            <h2 className={styles.modalName}>{selectedProduct.name}</h2>
-            {selectedProduct.promo && <div className={styles.modalPromo}>{selectedProduct.promo}</div>}
-            <div className={styles.modalShop}>{selectedProduct.shopName}</div>
-            <div className={styles.modalPrice}>
-              {formatRp(selectedProduct.price)} + Fee {formatRp(selectedProduct.fee)}
-            </div>
-            <div className={styles.modalActions}>
-              <button className={styles.btnAdd} onClick={() => addToCart(selectedProduct)}>+ Titip</button>
-              <button className={styles.btnQuick} onClick={() => addToCart(selectedProduct, true)}>Beli Cepat</button>
+          <div className={styles.modalBackdrop} onClick={() => setSelectedProduct(null)}>
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.modalClose} onClick={() => setSelectedProduct(null)}>×</button>
+              <img
+                src={selectedProduct.img || "https://via.placeholder.com/200"}
+                alt={selectedProduct.name}
+                className={styles.modalImg}
+              />
+              <h2 className={styles.modalName}>{selectedProduct.name}</h2>
+              {selectedProduct.promo && <div className={styles.modalPromo}>{selectedProduct.promo}</div>}
+              <div className={styles.modalShop}>{selectedProduct.shopName}</div>
+              <div className={styles.modalPrice}>
+                {formatRp(selectedProduct.price)} + Fee {formatRp(selectedProduct.fee)}
+              </div>
+              <div className={styles.modalActions}>
+                <button className={styles.btnAdd} onClick={() => addToCart(selectedProduct)}>+ Titip</button>
+                <button className={styles.btnQuick} onClick={() => addToCart(selectedProduct, true)}>Beli Cepat</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* FOOTER */}
+        <footer className={styles.footer}>
+          <div>
+            {shopData?.name || "Jastip"} • Jadwal: Senin–Jumat • Order cutoff 16:00
+          </div>
+          <div style={{ marginTop: 6 }}>
+            Contact:{" "}
+            <a
+              href={`https://wa.me/${shopData?.wa || "6289668081647"}`}
+              id="waLink"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Chat WhatsApp
+            </a>
+          </div>
+        </footer>
+
+
     </main>
   );
 }
