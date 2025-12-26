@@ -184,7 +184,7 @@ export default function ShopPage({ shop }) {
             <div className={styles.cartItemName}>
               {name}
               <br />
-              <small>Rp{formatRp(item.price)}</small>
+              <small>{formatRp(item.price)}</small>
             </div>
             <div className={styles.cartControls}>
               <button onClick={() => changeQty(name, -1)}>-</button>
@@ -195,7 +195,7 @@ export default function ShopPage({ shop }) {
           </div>
         ))}
 
-        <div className={styles.cartTotal}>Total: Rp{formatRp(totalPrice)}</div>
+        <div className={styles.cartTotal}>Total: {formatRp(totalPrice)}</div>
         <button onClick={checkout} className={styles.checkout}>Kirim via WhatsApp</button>
       </div>
 
