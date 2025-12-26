@@ -59,7 +59,7 @@ export async function GET(req) {
       fee: Number(p.fee) || 0,
       category: p.category || "",
       promo: p.promo || "",
-      shopName: p.shopName || shopData.name,
+      shopName: p.shop || shopData.name,
     }));
 
     const data = { shop: shopData, products };
