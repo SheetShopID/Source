@@ -356,3 +356,48 @@
   color: #64748b;
 }
 
+/* Hide preview di layar kecil */
+@media (max-width: 900px) {
+  .previewColumn {
+    display: none;
+  }
+  .btnPreview {
+    display: block;
+    margin-top: 1rem;
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+  }
+}
+
+/* Modal preview tampil di mobile */
+.mobilePreviewOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.mobilePreviewBox {
+  background: #fff;
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  position: relative;
+}
+.closePreview {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
