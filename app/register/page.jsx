@@ -68,7 +68,7 @@ export default function RegisterPage() {
     { img: "https://picsum.photos/seed/prod2/200/200", name: "Scarlett Serum", fee: 8000, price: 150000, promo: "", category: "Skincare" },
   ];
 
-  const themeColors = { jastip: "#2f8f4a", makanan: "#f97316", laundry: "#3b82f6" };
+  const themeColors = { jastip: "#2f8f4a", makanan: "#f97316", laundry: "#3b82f6",beauty: "#2f8f4a" };
   const themeColor = themeColors[form.theme] || "#2f8f4a";
 
   // Simulasi Cart Preview
@@ -142,14 +142,26 @@ export default function RegisterPage() {
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Pilih Tema</label>
                   <div className={styles.themeGrid}>
-                    {["jastip", "makanan", "laundry"].map((t) => (
-                      <div key={t} className={`${styles.themeCard} ${form.theme === t ? styles.active : ""}`} onClick={() => handleThemeSelect(t)}>
-                        <span className={styles.themeIcon}>{t === "jastip" ? "🛍️" : t === "makanan" ? "🍔" : "👕"}</span>
-                        <div className={styles.themeTitle}>{t.charAt(0).toUpperCase() + t.slice(1)}</div>
+                    {[
+                      { id: "jastip", label: "Jastip", icon: "🛍️" },
+                      { id: "makanan", label: "Makanan", icon: "🍔" },
+                      { id: "laundry", label: "Laundry", icon: "👕" },
+                      { id: "beauty", label: "Kecantikan", icon: "💅" },
+                    ].map((t) => (
+                      <div
+                        key={t.id}
+                        className={`${styles.themeCard} ${
+                          form.theme === t.id ? styles.active : ""
+                        }`}
+                        onClick={() => handleThemeSelect(t.id)}
+                      >
+                        <span className={styles.themeIcon}>{t.icon}</span>
+                        <div className={styles.themeTitle}>{t.label}</div>
                       </div>
                     ))}
                   </div>
                 </div>
+
 
                 <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={loading}>
                   {loading ? "Memproses..." : "Buat Toko Sekarang"}
@@ -259,3 +271,4 @@ export default function RegisterPage() {
     </>
   );
 }
+
