@@ -43,7 +43,7 @@ export default function FoodTemplate({
               className={styles.addBtn}
               onClick={() => addToCart(item)}
             >
-              Tambah
+              Pesan
             </button>
           </div>
         </article>
@@ -51,5 +51,6 @@ export default function FoodTemplate({
     </section>
   );
 }
+
 
 
