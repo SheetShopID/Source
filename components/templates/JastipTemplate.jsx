@@ -1,8 +1,8 @@
-export default function JastipTemplate({ products, utils, addToCart }) {
+export default function JastipTemplate({ products, utils, addToCart, setSelectedProduct }) {
   return (
     <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))", gap: 12, margin: "0 14px" }}>
       {products.map((item, idx) => (
-        <div key={idx} style={{
+        <div key={idx} onClick={() => setSelectedProduct(item)} style={{
           background: "#fff",
           padding: 12,
           borderRadius: 16,
@@ -24,3 +24,4 @@ export default function JastipTemplate({ products, utils, addToCart }) {
     </section>
   );
 }
+
