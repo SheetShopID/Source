@@ -421,8 +421,13 @@
 /* Untuk layar kecil agar tombol tidak keluar dari viewport */
 @media (max-width: 480px) {
   .closePreview {
-    top: -30px;
-    right: 0;
-    font-size: 0.85rem;
+        top: 5px;
+        right: 0;
+        font-size: .85rem;
+        width: 96%;
+        text-align: center;
+        left: 1.5%;    
+    
   }
 }
+
