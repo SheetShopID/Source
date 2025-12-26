@@ -5,9 +5,12 @@ export default function JastipTemplate({ products, utils, addToCart, setSelected
     <section className={styles.grid}>
       {products.map((item, idx) => (
         <div key={idx} onClick={() => setSelectedProduct(item)} className={styles.card}>
-         {/* PROMO BADGE */}
+        {/* RIBBON PROMO */}
           {item.promo === "Ya" && (
-            <div className={styles.promoBadge}>PROMO</div>
+            <div className={styles.ribbonContainer}>
+              <span className={styles.ribbon}>PROMO</span>
+              <span className={styles.ribbonBottom}></span>
+            </div>
           )}
           
           <div className={styles.img}>
@@ -45,3 +48,4 @@ export default function JastipTemplate({ products, utils, addToCart, setSelected
     </section>
   );
 }
+
