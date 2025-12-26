@@ -116,6 +116,7 @@
   cursor: pointer;
   transition: 0.2s;
   z-index: 50;
+  padding-right:2px;
 }
 
 .cartCount {
@@ -363,3 +364,4 @@
 .footer a:hover {
   text-decoration: underline;
 }
+
