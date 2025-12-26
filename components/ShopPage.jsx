@@ -261,7 +261,7 @@ export default function ShopPage({ shop }) {
               Chat WhatsApp
             </a>
           </div>
-          <div>
+          <div style={{ marginTop: 8 }}>
              &copy; tokoinstan.shop
           </div>
         </footer>
