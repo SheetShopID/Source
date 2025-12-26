@@ -12,12 +12,12 @@ export default function FoodTemplate({
           {/* INFO */}
           <div className={styles.info}>
             <h3 className={styles.name}>{item.name}</h3>
-
+            <div className={styles.shop}>{item.shopName}</div>
             {item.rating && (
               <div className={styles.rating}>
-                ⭐ {item.rating}
+                ⭐ 4.9
                 {item.reviewCount && (
-                  <span className={styles.review}> ({item.reviewCount}+)</span>
+                  <span className={styles.review}> (500+)</span>
                 )}
               </div>
             )}
@@ -51,3 +51,4 @@ export default function FoodTemplate({
     </section>
   );
 }
+
