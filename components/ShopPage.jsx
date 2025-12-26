@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import JastipTemplate from "./templates/JastipTemplate";
 import FoodTemplate from "./templates/FoodTemplate";
 import LaundryTemplate from "./templates/LaundryTemplate";
+import BeautyTemplate from "./templates/BeautyTemplate";
+
 import { formatRp } from "@/lib/utils";
 import styles from "./ShopPage.module.css";
 
@@ -61,6 +63,7 @@ export default function ShopPage({ shop }) {
     switch (shopData.theme) {
       case "makanan": return FoodTemplate;
       case "laundry": return LaundryTemplate;
+      case "beauty": return BeautyTemplate;
       default: return JastipTemplate;
     }
   }, [shopData]);
