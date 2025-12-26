@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import styles from "./RegisterPage.module.css";
+import { formatRp } from "@/lib/utils";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -12,8 +13,11 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [previewCart, setPreviewCart] = useState({});
+  const [cartOpen, setCartOpen] = useState(false);
   const timeoutRef = useRef(null);
 
+  // Input handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
@@ -59,10 +63,67 @@ export default function RegisterPage() {
     }
   };
 
+  // Preview dummy data
   const previewData = [
-    { img: "https://picsum.photos/seed/prod1/100/100", name: "Produk A", meta: "Fee Rp5.000", price: "Rp 50.000" },
-    { img: "https://picsum.photos/seed/prod2/100/100", name: "Produk B", meta: "Fee Rp10.000", price: "Rp 100.000" },
+    {
+      img: "https://picsum.photos/seed/prod1/200/200",
+      name: "Kopi Kenangan",
+      fee: 5000,
+      price: 25000,
+      promo: "Diskon 10%",
+      category: "Minuman",
+    },
+    {
+      img: "https://picsum.photos/seed/prod2/200/200",
+      name: "Scarlett Serum",
+      fee: 8000,
+      price: 150000,
+      promo: "",
+      category: "Skincare",
+    },
   ];
+
+  const themeColors = {
+    jastip: "#2f8f4a",
+    makanan: "#f97316",
+    laundry: "#3b82f6",
+  };
+  const themeColor = themeColors[form.theme] || "#2f8f4a";
+
+  // Simulasi cart untuk preview
+  const addToCart = (item) => {
+    setPreviewCart((prev) => {
+      const existing = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
+      const newQty = existing.qty + 1;
+      return { ...prev, [item.name]: { ...existing, qty: newQty } };
+    });
+    setCartOpen(true);
+  };
+
+  const changeQty = (name, delta) => {
+    setPreviewCart((prev) => {
+      const copy = { ...prev };
+      if (!copy[name]) return copy;
+      copy[name].qty += delta;
+      if (copy[name].qty <= 0) delete copy[name];
+      return copy;
+    });
+  };
+
+  const removeFromCart = (name) => {
+    setPreviewCart((prev) => {
+      const copy = { ...prev };
+      delete copy[name];
+      return copy;
+    });
+  };
+
+  const cartItems = Object.entries(previewCart);
+  const totalQty = cartItems.reduce((a, [_, v]) => a + v.qty, 0);
+  const totalPrice = cartItems.reduce(
+    (a, [_, v]) => a + (v.price + v.fee) * v.qty,
+    0
+  );
 
   return (
     <>
@@ -138,7 +199,9 @@ export default function RegisterPage() {
                     {["jastip", "makanan", "laundry"].map((t) => (
                       <div
                         key={t}
-                        className={`${styles.themeCard} ${form.theme === t ? styles.active : ""}`}
+                        className={`${styles.themeCard} ${
+                          form.theme === t ? styles.active : ""
+                        }`}
                         onClick={() => handleThemeSelect(t)}
                       >
                         <span className={styles.themeIcon}>
@@ -165,28 +228,112 @@ export default function RegisterPage() {
 
           {/* PREVIEW SIDE */}
           <section className={styles.previewColumn}>
-            <div className={styles.card} style={{ background: "transparent", border: "none", boxShadow: "none" }}>
-              <div className={styles.previewWrapper}>
-                <div className={`${styles.mobileFrame} theme-${form.theme}`}>
-                  <div className={styles.appHeader}>
-                    <div className={styles.shopName}>{form.name || "Nama Toko"}</div>
-                    <div className={styles.shopTagline}>
-                      {form.subdomain ? `${form.subdomain}.tokoinstan.online` : "tokosaya.tokoinstan.online"}
+            <div className={styles.previewWrapper}>
+              <div className={styles.mobileFrame}>
+                {/* HEADER */}
+                <div
+                  className={styles.appHeader}
+                  style={{ background: themeColor }}
+                >
+                  <div className={styles.shopName}>
+                    {form.name || "Nama Toko"}
+                  </div>
+                  <div className={styles.shopTagline}>
+                    {form.subdomain
+                      ? `${form.subdomain}.tokoinstan.online`
+                      : "tokosaya.tokoinstan.online"}
+                  </div>
+                </div>
+
+                {/* HERO */}
+                <div className={styles.heroSection}>
+                  <div>
+                    <h1>Tagline Produk . .</h1>
+                    <p>🚆 Belanjain kamu langsung dari Setiabudi, Epicentrum, atau sekitarnya!</p>
+                  </div>
+                  <div
+                    className={styles.badge}
+                    style={{ background: themeColor }}
+                  >
+                    Open • Hari ini
+                  </div>
+                </div>
+
+                {/* GRID PRODUCT */}
+                <div className={styles.grid}>
+                  {previewData.map((item, i) => (
+                    <div
+                      key={i}
+                      className={styles.cardProduct}
+                      onClick={() => addToCart(item)}
+                    >
+                      <div className={styles.img}>
+                        <img src={item.img} alt="" />
+                      </div>
+                      {item.promo && (
+                        <div className={styles.badgePromo}>{item.promo}</div>
+                      )}
+                      <div className={styles.pname}>{item.name}</div>
+                      <div className={styles.shop}>Demo Shop</div>
+                      <div className={styles.price}>
+                        {formatRp(item.price)} + Fee {formatRp(item.fee)}
+                      </div>
                     </div>
+                  ))}
+                </div>
+
+                {/* CART ICON */}
+                <div
+                  className={styles.cartIcon}
+                  onClick={() => setCartOpen(!cartOpen)}
+                >
+                  🛒
+                  {totalQty > 0 && (
+                    <span className={styles.cartCount}>{totalQty}</span>
+                  )}
+                </div>
+
+                {/* CART DRAWER PREVIEW */}
+                <div
+                  className={`${styles.cartDrawer} ${
+                    cartOpen ? styles.active : ""
+                  }`}
+                >
+                  <div className={styles.cartHeader}>
+                    <h3>🛍️ Pesanan Kamu</h3>
+                    <button
+                      onClick={() => setCartOpen(false)}
+                      className={styles.btnMinimize}
+                    >
+                      −
+                    </button>
                   </div>
 
-                  <div className={styles.appContent}>
-                    {previewData.map((item, i) => (
-                      <div key={i} className={styles.productCard}>
-                        <img src={item.img} alt="" className={styles.productImg} />
-                        <div className={styles.productInfo}>
-                          <div className={styles.productName}>{item.name}</div>
-                          <div className={styles.productMeta}>{item.meta}</div>
-                          <div className={styles.productPrice}>{item.price}</div>
-                        </div>
+                  {cartItems.length === 0 && (
+                    <div className={styles.emptyCart}>Keranjang kosong</div>
+                  )}
+
+                  {cartItems.map(([name, item]) => (
+                    <div key={name} className={styles.cartItem}>
+                      <div className={styles.cartItemName}>
+                        {name}
+                        <br />
+                        <small>Rp{formatRp(item.price)}</small>
                       </div>
-                    ))}
-                  </div>
+                      <div className={styles.cartControls}>
+                        <button onClick={() => changeQty(name, -1)}>-</button>
+                        <span>{item.qty}</span>
+                        <button onClick={() => changeQty(name, 1)}>+</button>
+                        <button onClick={() => removeFromCart(name)}>❌</button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {cartItems.length > 0 && (
+                    <div className={styles.cartTotal}>
+                      Total: Rp{formatRp(totalPrice)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -195,24 +342,16 @@ export default function RegisterPage() {
       </div>
 
       {/* TOAST */}
-      <div className={styles.toastContainer}>
-        {toast.show && (
-          <div
-            className={`${styles.toast} ${styles.show} ${
-              toast.type === "success" ? styles.success : styles.error
-            }`}
-            onClick={() => setToast({ show: false })}
-          >
-            <div>{toast.type === "success" ? "✅" : "⚠️"}</div>
-            <div className={styles.toastContent}>
-              <h4>{toast.type === "success" ? "Berhasil" : "Terjadi Kesalahan"}</h4>
-              <p>{toast.message}</p>
-            </div>
-          </div>
-        )}
-      </div>
+      {toast.show && (
+        <div
+          className={`${styles.toast} ${
+            toast.type === "success" ? styles.success : styles.error
+          }`}
+          onClick={() => setToast({ show: false })}
+        >
+          {toast.type === "success" ? "✅" : "⚠️"} {toast.message}
+        </div>
+      )}
     </>
   );
 }
-
-
