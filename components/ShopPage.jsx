@@ -239,6 +239,9 @@ export default function ShopPage({ shop }) {
               Chat WhatsApp
             </a>
           </div>
+          <div>
+             &copy; tokoinstan.shop
+          </div>
         </footer>
 
 
