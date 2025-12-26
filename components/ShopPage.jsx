@@ -16,6 +16,7 @@ export default function ShopPage({ shop }) {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [cart, setCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -170,7 +171,7 @@ export default function ShopPage({ shop }) {
       </div>
 
       {/* TEMPLATE GRID */}
-      <Template products={filteredProducts} utils={{ formatRp }} addToCart={addToCart} />
+      <Template products={filteredProducts} utils={{ formatRp }} addToCart={addToCart} setSelectedProduct={setSelectedProduct} />
 
       {/* FLOATING CART ICON */}
       <button className={styles.cartIcon} onClick={() => setCartOpen(!cartOpen)}>
@@ -206,6 +207,31 @@ export default function ShopPage({ shop }) {
         <div className={styles.cartTotal}>Total: Rp{formatRp(totalPrice)}</div>
         <button onClick={checkout} className={styles.checkout}>Kirim via WhatsApp</button>
       </div>
+
+      {/* PRODUCT DETAIL MODAL */}
+      {selectedProduct && (
+        <div className={styles.modalBackdrop} onClick={() => setSelectedProduct(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.modalClose} onClick={() => setSelectedProduct(null)}>×</button>
+      
+            <img src={selectedProduct.img || "https://via.placeholder.com/200"} alt={selectedProduct.name} className={styles.modalImg} />
+      
+            <h2 className={styles.modalName}>{selectedProduct.name}</h2>
+            {selectedProduct.promo && <div className={styles.modalPromo}>{selectedProduct.promo}</div>}
+            <div className={styles.modalShop}>{selectedProduct.shopName}</div>
+      
+            <div className={styles.modalPrice}>
+              {formatRp(selectedProduct.price)} + Fee {formatRp(selectedProduct.fee)}
+            </div>
+      
+            <div className={styles.modalActions}>
+              <button className={styles.btnAdd} onClick={() => addToCart(selectedProduct)}>+ Titip</button>
+              <button className={styles.btnQuick} onClick={() => addToCart(selectedProduct, true)}>Beli Cepat</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </main>
   );
 }
