@@ -5,7 +5,6 @@ import JastipTemplate from "./templates/JastipTemplate";
 import FoodTemplate from "./templates/FoodTemplate";
 import LaundryTemplate from "./templates/LaundryTemplate";
 import { formatRp } from "@/lib/utils";
-import { parseCSV, convertSheetToCSVUrl } from "@/lib/csv";
 import styles from "./ShopPage.module.css";
 
 export default function ShopPage({ shop }) {
@@ -18,41 +17,34 @@ export default function ShopPage({ shop }) {
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // 🚀 Fetch data (JSON langsung dari server)
   useEffect(() => {
+    const cacheKey = `shop-cache-${shop}`;
+
     async function load() {
       try {
         setLoading(true);
         setError("");
 
+        // 💾 Coba ambil cache lokal
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const json = JSON.parse(cached);
+          setShopData(json.shop);
+          setProducts(json.products);
+        }
+
+        // 🌐 Fetch versi terbaru
         const res = await fetch(`/api/get-shop?shop=${shop}`, { cache: "no-store" });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error || "Toko tidak ditemukan");
         }
 
-        const shopJson = await res.json();
-        setShopData(shopJson);
-
-        if (shopJson.sheetUrl) {
-          const csvUrl = convertSheetToCSVUrl(shopJson.sheetUrl);
-          const csvRes = await fetch(csvUrl);
-          if (!csvRes.ok) throw new Error("Gagal mengambil data produk");
-
-          const csvText = await csvRes.text();
-          const parsed = parseCSV(csvText);
-
-          setProducts(
-            parsed.map((p) => ({
-              name: p.name,
-              price: Number(p.price) || 0,
-              img: p.img || "",
-              fee: Number(p.fee) || 0,
-              category: p.category || "",
-              promo: p.promo || "",
-              shopName: p.shopName || shopJson.name,
-            }))
-          );
-        }
+        const json = await res.json();
+        setShopData(json.shop);
+        setProducts(json.products);
+        localStorage.setItem(cacheKey, JSON.stringify(json));
       } catch (e) {
         console.error("[SHOP PAGE]", e);
         setError(e.message || "Terjadi kesalahan");
@@ -73,6 +65,7 @@ export default function ShopPage({ shop }) {
     }
   }, [shopData]);
 
+  // CART HANDLER
   const addToCart = (item, quickBuy = false) => {
     setCart((prev) => {
       const existing = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
@@ -102,19 +95,12 @@ export default function ShopPage({ shop }) {
 
   const checkout = () => {
     const items = Object.entries(cart)
-      .map(
-        ([name, data]) =>
-          `${name} x${data.qty} - Rp${formatRp((data.price + data.fee) * data.qty)}`
-      )
+      .map(([name, data]) => `${name} x${data.qty} - Rp${formatRp((data.price + data.fee) * data.qty)}`)
       .join("\n");
 
-    const waLink = `https://wa.me/${shopData?.wa}?text=${encodeURIComponent(
-      items || "Saya ingin order"
-    )}`;
-
+    const waLink = `https://wa.me/${shopData?.wa}?text=${encodeURIComponent(items || "Saya ingin order")}`;
     window.open(waLink, "_blank");
 
-    // ✅ Reset keranjang setelah kirim
     setTimeout(() => {
       setCart({});
       setCartOpen(false);
@@ -171,7 +157,12 @@ export default function ShopPage({ shop }) {
       </div>
 
       {/* TEMPLATE GRID */}
-      <Template products={filteredProducts} utils={{ formatRp }} addToCart={addToCart} setSelectedProduct={setSelectedProduct} />
+      <Template
+        products={filteredProducts}
+        utils={{ formatRp }}
+        addToCart={addToCart}
+        setSelectedProduct={setSelectedProduct}
+      />
 
       {/* FLOATING CART ICON */}
       <button className={styles.cartIcon} onClick={() => setCartOpen(!cartOpen)}>
@@ -213,17 +204,17 @@ export default function ShopPage({ shop }) {
         <div className={styles.modalBackdrop} onClick={() => setSelectedProduct(null)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <button className={styles.modalClose} onClick={() => setSelectedProduct(null)}>×</button>
-      
-            <img src={selectedProduct.img || "https://via.placeholder.com/200"} alt={selectedProduct.name} className={styles.modalImg} />
-      
+            <img
+              src={selectedProduct.img || "https://via.placeholder.com/200"}
+              alt={selectedProduct.name}
+              className={styles.modalImg}
+            />
             <h2 className={styles.modalName}>{selectedProduct.name}</h2>
             {selectedProduct.promo && <div className={styles.modalPromo}>{selectedProduct.promo}</div>}
             <div className={styles.modalShop}>{selectedProduct.shopName}</div>
-      
             <div className={styles.modalPrice}>
               {formatRp(selectedProduct.price)} + Fee {formatRp(selectedProduct.fee)}
             </div>
-      
             <div className={styles.modalActions}>
               <button className={styles.btnAdd} onClick={() => addToCart(selectedProduct)}>+ Titip</button>
               <button className={styles.btnQuick} onClick={() => addToCart(selectedProduct, true)}>Beli Cepat</button>
@@ -231,7 +222,6 @@ export default function ShopPage({ shop }) {
           </div>
         </div>
       )}
-      
     </main>
   );
 }
