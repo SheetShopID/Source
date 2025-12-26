@@ -60,7 +60,8 @@ export async function GET(req) {
       category: p.category || "",
       promo: p.promo || "",
       shopName: p.shop || shopData.name,
-      estimasi: p.estimasi || 0,      
+      estimasi: p.estimasi || 0,
+      status:p.status
     }));
 
     const data = { shop: shopData, products };
