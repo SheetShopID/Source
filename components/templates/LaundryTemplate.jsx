@@ -1,100 +1,81 @@
-export default function LaundryTemplate({ products, utils }) {
+import styles from "./LaundryTemplate.module.css";
+
+export default function LaundryTemplate({ products, utils, addToCart, setSelectedProduct }) {
   return (
-    <div className="product-list">
-      {products.map((item, idx) => (
-        <div key={idx} className="product-card">
-          {/* Kiri: Gambar / Ikon Area 100px tes */}
-          <img 
-            src={item.img || "https://via.placeholder.com/100"} 
-            alt={item.name} 
-            className="product-img" 
-          />
-          
-          {/* Kanan: Info */}
-          <div className="product-info">
-            
-            {/* Badge Promo */}
-            {item.promo && (
-              <div className="badge-promo">{item.promo}</div>
-            )}
-
-            {/* Nama Produk */}
-            <h3 className="product-name">{item.name}</h3>
-
-            {/* Meta Info (Layanan) */}
-            <div className="product-meta">
-              {item.category || "Layanan Cuci"}
-            </div>
-
-            {/* Harga (Warna Biru) */}
-            <div className="product-price">
-              {utils.formatRp(item.price)}
-            </div>
-          </div>
+    <section className={styles.container}>
+      {/* HERO */}
+      <div className={styles.hero}>
+        <div className={styles.heroText}>
+          <h2>🧺 Laundry Bersih, Wangi, Tepat Waktu</h2>
+          <p>
+            Cuci kiloan, setrika, hingga dry clean. Dikerjakan cepat & profesional!
+          </p>
         </div>
-      ))}
+        <div className={styles.heroImg}>
+          <img
+            src="/images/laundry-hero.jpg"
+            alt="Laundry"
+          />
+        </div>
+      </div>
 
-      <style jsx>{`
-        .product-list { display: flex; flex-direction: column; gap: 1rem; }
-        
-        .product-card {
-          background: white;
-          border-radius: 8px;
-          overflow: hidden;
-          display: flex;
-          border: 1px solid rgba(0,0,0,0.05);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          /* Penting: Sesuai ukuran preview */
-        }
+      {/* LIST PRODUK */}
+      <div className={styles.list}>
+        {products.map((item, idx) => {
+          const isMembership = item.category?.toLowerCase().includes("member");
+          return (
+            <div
+              key={idx}
+              className={`${styles.card} ${isMembership ? styles.membership : ""}`}
+              onClick={() => setSelectedProduct?.(item)}
+            >
+              <div className={styles.imageBox}>
+                <img
+                  src={item.img || "https://via.placeholder.com/200x150"}
+                  alt={item.name}
+                />
+                {item.promo && <div className={styles.badge}>{item.promo}</div>}
+              </div>
 
-        .product-img {
-          width: 100px;
-          height: 100px;
-          object-fit: cover;
-          background: #eee;
-          flex-shrink: 0;
-        }
+              <div className={styles.info}>
+                <h3>{item.name}</h3>
 
-        .product-info {
-          padding: 12px;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
+                <div className={styles.meta}>
+                  {item.status && (
+                    <span
+                      className={`${styles.status} ${
+                        item.status.toLowerCase().includes("selesai")
+                          ? styles.done
+                          : item.status.toLowerCase().includes("dicuci")
+                          ? styles.progress
+                          : styles.waiting
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  )}
+                  {item.estimasi && (
+                    <span className={styles.estimasi}>
+                      ⏱ {item.estimasi} jam
+                    </span>
+                  )}
+                </div>
 
-        .badge-promo {
-          background: #ffedd5;
-          color: #c2410c;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 4px;
-          align-self: flex-start;
-          margin-bottom: 4px;
-          display: inline-block;
-        }
+                <div className={styles.price}>
+                  {utils.formatRp(item.price)} / {item.fee || "kg"}
+                </div>
 
-        .product-name {
-          font-weight: 600;
-          font-size: 14px; /* 0.95rem */
-          color: #0c4a6e; /* Warna Teks Laundry */
-          margin-bottom: 4px;
-          line-height: 1.2;
-        }
-
-        .product-meta {
-          font-size: 12px; /* 0.8rem */
-          color: #64748b;
-          margin-bottom: 6px;
-        }
-
-        .product-price {
-          color: #0369a1; /* Warna Aksen Laundry */
-          font-weight: 700;
-          font-size: 16px; /* 1rem */
-        }
-      `}</style>
-    </div>
+                <div className={styles.actions}>
+                  <button onClick={() => addToCart(item)}>+ Tambah</button>
+                  <button onClick={() => addToCart(item, true)}>Pesan Cepat</button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
+export const previewImage = "/preview/laundry.jpg";
