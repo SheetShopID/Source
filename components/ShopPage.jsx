@@ -7,6 +7,8 @@ import LaundryTemplate from "./templates/LaundryTemplate";
 import BeautyTemplate from "./templates/BeautyTemplate";
 
 import { formatRp } from "@/lib/utils";
+import SkeletonCard from "@/components/skeletons/SkeletonCard";
+
 import styles from "./ShopPage.module.css";
 
 export default function ShopPage({ shop }) {
@@ -110,7 +112,8 @@ export default function ShopPage({ shop }) {
     }, 1000);
   };
 
-  if (loading) return <div className="p-10 text-center text-gray-500">Memuat toko...</div>;
+  //if (loading) return <div className="p-10 text-center text-gray-500">Memuat toko...</div>;
+  if (loading) return <SkeletonCard count={8} />;
   if (error) return <div className="p-10 text-center text-red-600">{error}</div>;
   if (!shopData) return <div className="p-10 text-center text-red-600">Toko tidak ditemukan</div>;
 
