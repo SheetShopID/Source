@@ -1,0 +1,80 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  padding: 0 14px 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0,0,0,.05);
+}
+
+/* BASE SKELETON */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: #ececec;
+}
+
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.6),
+    transparent
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* IMAGE */
+.img {
+  height: 130px;
+}
+
+/* CONTENT */
+.content {
+  padding: 10px 12px 6px;
+}
+
+.title {
+  height: 14px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  height: 11px;
+  width: 70%;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.price {
+  height: 13px;
+  width: 60%;
+  border-radius: 6px;
+}
+
+/* ACTIONS */
+.actions {
+  padding: 10px 12px 12px;
+}
+
+.btn {
+  height: 34px;
+  border-radius: 14px;
+  margin-bottom: 6px;
+}
