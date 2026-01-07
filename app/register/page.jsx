@@ -72,14 +72,19 @@ export default function RegisterPage() {
   ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email.endsWith("@gmail.com")) {
-      showToast("Gunakan email Gmail untuk Google Sheet", "error");
+
+    // Validasi email opsional (jika diisi harus valid)
+    if (form.email && !form.email.includes("@")) {
+      showToast("Format email tidak valid", "error");
       return;
     }
-    if (form.subdomain.length < 4) {
-      showToast("Subdomain minimal 4 karakter", "error");
+
+    // Validasi subdomain minimal 3 karakter
+    if (form.subdomain.length < 3) {
+      showToast("Subdomain minimal 3 karakter", "error");
       return;
     }
+
     setLoading(true);
     try {
       const res = await fetch("/api/register-shop", {
@@ -93,12 +98,15 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
-      showToast("Toko & Google Sheet berhasil dibuat!");
+      showToast("Toko berhasil dibuat!");
       setLoading(false);
-      setTimeout(() => {
+
+      // Redirect langsung tanpa delay
+      if (json.redirect) {
         window.location.href = json.redirect;
-      }, 1500);
-    } catch {
+      }
+    } catch (error) {
+      console.error("[REGISTER PAGE] Error:", error);
       showToast("Terjadi kesalahan koneksi", "error");
       setLoading(false);
     }
