@@ -1,51 +1,68 @@
-import styles from "./JastipTemplate.module.css";
-
 export default function JastipTemplate({ products, utils, addToCart, setSelectedProduct }) {
   return (
     <section className={styles.grid}>
       {products.map((item, idx) => (
-        <div key={idx} onClick={() => setSelectedProduct(item)} className={styles.card}>
-        {/* RIBBON PROMO */}
+        <div
+          key={idx}
+          className={styles.card}
+          onClick={() => setSelectedProduct(item)}
+        >
+          {/* PROMO RIBBON */}
           {item.promo === "Ya" && (
             <div className={styles.ribbonContainer}>
               <span className={styles.ribbon}>PROMO</span>
               <span className={styles.ribbonBottom}></span>
             </div>
           )}
-          
+
+          {/* IMAGE */}
           <div className={styles.img}>
-            <img
-              src={item.img || "https://via.placeholder.com/100"}
-              alt={item.name}
-            />
-          </div>
-          <div className={styles.name}>{item.name}</div>
-          <div className={styles.shop}>{item.shopName}</div>
-          <div className={styles.price}>
-            {utils.formatRp(item.price)} + Fee {utils.formatRp(item.fee)}
+            <img src={item.img || "https://via.placeholder.com/300"} alt={item.name} />
           </div>
 
-          <button
-            className={`${styles.btn} ${styles.add}`}
-            onClick={(e) => {
-              e.stopPropagation(); // supaya tidak buka modal
-              addToCart(item);
-            }}
-          >
-            + Titip
-          </button>
-          <button
-            className={`${styles.btn} ${styles.quick}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              addToCart(item, true);
-            }}
-          >
-            Beli Cepat
-          </button>
+          {/* CONTENT */}
+          <div className={styles.content}>
+            <div className={styles.name}>{item.name}</div>
+            <div className={styles.shop}>{item.shopName}</div>
+
+            <div className={styles.priceRow}>
+              <span className={styles.price}>
+                {utils.formatRp(item.price)}
+              </span>
+              <span className={styles.fee}>
+                + Fee {utils.formatRp(item.fee)}
+              </span>
+            </div>
+
+            {item.estimasi && (
+              <div className={styles.estimate}>⏱️ {item.estimasi}</div>
+            )}
+          </div>
+
+          {/* ACTION */}
+          <div className={styles.actions}>
+            <button
+              className={`${styles.btn} ${styles.add}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                addToCart(item);
+              }}
+            >
+              + Titip
+            </button>
+
+            <button
+              className={`${styles.btn} ${styles.quick}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                addToCart(item, true);
+              }}
+            >
+              Beli Cepat
+            </button>
+          </div>
         </div>
       ))}
     </section>
   );
 }
-
