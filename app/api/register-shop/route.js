@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 
-const BASE_FIREBASE_URL =
+const FIREBASE_BASE =
   "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
 
 export async function POST(req) {
   try {
-    const { name, wa, email, subdomain, theme } = await req.json();
+    const body = await req.json();
+    const { name, wa, email, subdomain, theme } = body;
 
-    // 0️⃣ VALIDASI
+    // ==================================================
+    // 0️⃣ VALIDASI INPUT
+    // ==================================================
     if (!name || !wa || !email || !subdomain || !theme) {
       return NextResponse.json(
         { error: "Data tidak lengkap" },
@@ -18,13 +21,24 @@ export async function POST(req) {
 
     if (!/^[a-z0-9-]+$/.test(subdomain)) {
       return NextResponse.json(
-        { error: "Subdomain tidak valid" },
+        { error: "Subdomain hanya boleh huruf kecil, angka, dan -" },
         { status: 400 }
       );
     }
 
-    // 1️⃣ CEK SUBDOMAIN
-    const shopUrl = `${BASE_FIREBASE_URL}/shops/${subdomain}.json`;
+    const RESERVED = ["www", "admin", "api"];
+    if (RESERVED.includes(subdomain)) {
+      return NextResponse.json(
+        { error: "Subdomain tidak diperbolehkan" },
+        { status: 400 }
+      );
+    }
+
+    const shopUrl = `${FIREBASE_BASE}/shops/${subdomain}.json`;
+
+    // ==================================================
+    // 1️⃣ CEK SUBDOMAIN DI FIREBASE
+    // ==================================================
     const checkRes = await fetch(shopUrl, { cache: "no-store" });
     const exists = await checkRes.json();
 
@@ -35,45 +49,52 @@ export async function POST(req) {
       );
     }
 
-    // 2️⃣ PANGGIL APPS SCRIPT (COPY SHEET + SHARE)
+    // ==================================================
+    // 2️⃣ APPS SCRIPT → COPY SHEET + SHARE GMAIL
+    // ==================================================
     const scriptRes = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        action: "createSheet",
         email,
         shopName: name,
         theme,
       }),
     });
 
-    if (!scriptRes.ok) {
-      const html = await scriptRes.text();
-      console.error("[APPS SCRIPT ERROR]", html);
-      throw new Error("Apps Script gagal diakses");
-    }
-
-    const rawText = await scriptRes.text();
-    let sheetResult;
+    const scriptText = await scriptRes.text();
+    let scriptJson;
 
     try {
-      sheetResult = JSON.parse(rawText);
-    } catch {
-      console.error("[APPS SCRIPT HTML]", rawText);
-      throw new Error("Response Apps Script tidak valid");
+      scriptJson = JSON.parse(scriptText);
+    } catch (err) {
+      console.error("[APPS SCRIPT NON-JSON]", scriptText);
+      throw new Error("Apps Script tidak mengembalikan JSON");
     }
 
-    if (!sheetResult.ok || !sheetResult.sheetUrl) {
-      throw new Error(sheetResult.error || "Gagal membuat Google Sheet");
+    if (!scriptRes.ok || !scriptJson.ok) {
+      console.error("[APPS SCRIPT ERROR]", scriptJson);
+      throw new Error(scriptJson.error || "Gagal membuat Google Sheet");
     }
 
-    // 3️⃣ SIMPAN KE FIREBASE
-    const data = {
+    const { sheetId, sheetUrl } = scriptJson;
+
+    if (!sheetId || !sheetUrl) {
+      throw new Error("Sheet ID / URL tidak valid");
+    }
+
+    // ==================================================
+    // 3️⃣ SIMPAN DATA TOKO KE FIREBASE
+    // ==================================================
+    const shopData = {
       name,
       wa,
       email,
       subdomain,
       theme,
-      sheetUrl: sheetResult.sheetUrl,
+      sheetId,
+      sheetUrl,
       active: true,
       createdAt: Date.now(),
     };
@@ -81,16 +102,20 @@ export async function POST(req) {
     const saveRes = await fetch(shopUrl, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(shopData),
     });
 
     if (!saveRes.ok) {
+      const errText = await saveRes.text();
+      console.error("[FIREBASE ERROR]", errText);
       throw new Error("Gagal menyimpan data ke Firebase");
     }
 
     console.log("[REGISTER SHOP SUCCESS]", subdomain);
 
-    // 4️⃣ SUCCESS
+    // ==================================================
+    // 4️⃣ RESPONSE SUCCESS
+    // ==================================================
     return NextResponse.json({
       success: true,
       redirect: `https://${subdomain}.tokoinstan.online`,
@@ -105,4 +130,3 @@ export async function POST(req) {
     );
   }
 }
-
