@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { parseCSV, convertSheetToCSVUrl } from "@/lib/csv";
 
-const BASE_FIREBASE_URL = "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
-const cache = {}; // cache in-memory 1 menit
+const FIREBASE_BASE =
+  "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
+
+// cache in-memory (1 menit)
+const cache = {};
+const CACHE_TTL = 1000 * 60 * 1;
 
 export async function GET(req) {
   try {
@@ -10,73 +14,114 @@ export async function GET(req) {
     const shop = searchParams.get("shop");
 
     if (!shop) {
-      return NextResponse.json({ error: "Parameter 'shop' wajib diisi." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Parameter 'shop' wajib diisi" },
+        { status: 400 }
+      );
     }
 
     const now = Date.now();
-    if (cache[shop] && now - cache[shop].timestamp < 1000 * 60 * 1) {
+
+    // ==================================================
+    // 0️⃣ CACHE CHECK
+    // ==================================================
+    if (cache[shop] && now - cache[shop].timestamp < CACHE_TTL) {
       return NextResponse.json(cache[shop].data, { status: 200 });
     }
 
-    // 🔹 Ambil metadata toko dari Firebase
-    const firebaseUrl = `${BASE_FIREBASE_URL}/shops/${encodeURIComponent(shop)}.json`;
-    const res = await fetch(firebaseUrl, {
-      method: "GET",
+    // ==================================================
+    // 1️⃣ AMBIL DATA TOKO DARI FIREBASE
+    // ==================================================
+    const firebaseUrl = `${FIREBASE_BASE}/shops/${encodeURIComponent(shop)}.json`;
+    const fbRes = await fetch(firebaseUrl, {
       cache: "no-store",
       headers: { "Cache-Control": "no-store" },
     });
 
-    if (!res.ok) {
+    if (!fbRes.ok) {
+      throw new Error("Gagal mengambil data toko dari Firebase");
+    }
+
+    const shopData = await fbRes.json();
+
+    if (!shopData || !shopData.active) {
       return NextResponse.json(
-        { error: "Gagal mengambil data dari Firebase." },
-        { status: res.status }
+        { error: "Toko tidak ditemukan atau tidak aktif" },
+        { status: 404 }
       );
     }
 
-    const shopData = await res.json();
-    if (!shopData) {
-      return NextResponse.json({ error: "Toko tidak ditemukan." }, { status: 404 });
+    // ==================================================
+    // 2️⃣ AMBIL DATA PRODUK DARI GOOGLE SHEET
+    // ==================================================
+    let products = [];
+
+    if (shopData.sheetId || shopData.sheetUrl) {
+      try {
+        // support sheetId (baru) & sheetUrl (legacy)
+        const csvUrl = shopData.sheetId
+          ? `https://docs.google.com/spreadsheets/d/${shopData.sheetId}/export?format=csv`
+          : convertSheetToCSVUrl(shopData.sheetUrl);
+
+        const csvRes = await fetch(csvUrl, { cache: "no-store" });
+
+        if (!csvRes.ok) {
+          throw new Error("CSV tidak bisa diakses");
+        }
+
+        const csvText = await csvRes.text();
+        const parsed = parseCSV(csvText);
+
+        products = parsed
+          .filter((p) => p.name && p.status !== "off")
+          .map((p) => ({
+            name: p.name,
+            price: Number(p.price) || 0,
+            img: p.img || "",
+            fee: Number(p.fee) || 0,
+            category: p.category || "",
+            promo: p.promo || "",
+            estimasi: p.estimasi || "",
+            status: p.status || "on",
+            shopName: p.shop || shopData.name,
+          }));
+      } catch (sheetErr) {
+        console.warn(
+          "[GET-SHOP] Gagal ambil produk, lanjut tanpa produk:",
+          sheetErr.message
+        );
+        products = [];
+      }
     }
 
-    // 🔹 Pastikan ada sheetUrl
-    if (!shopData.sheetUrl) {
-      return NextResponse.json({ shop: shopData, products: [] }, { status: 200 });
-    }
+    // ==================================================
+    // 3️⃣ FINAL RESPONSE + CACHE
+    // ==================================================
+    const responseData = {
+      shop: {
+        name: shopData.name,
+        wa: shopData.wa,
+        theme: shopData.theme,
+        subdomain: shopData.subdomain,
+      },
+      products,
+    };
 
-    // 🔹 Ambil CSV dari Google Sheet
-    const csvUrl = convertSheetToCSVUrl(shopData.sheetUrl);
-    const csvRes = await fetch(csvUrl, { cache: "no-store" });
-    if (!csvRes.ok) throw new Error("Gagal mengambil data produk dari Google Sheet");
+    cache[shop] = {
+      timestamp: now,
+      data: responseData,
+    };
 
-    const csvText = await csvRes.text();
-    const parsed = parseCSV(csvText);
-
-    // 🔹 Parse di server → langsung format JSON siap render
-    const products = parsed.map((p) => ({
-      name: p.name,
-      price: Number(p.price) || 0,
-      img: p.img || "",
-      fee: Number(p.fee) || 0,
-      category: p.category || "",
-      promo: p.promo || "",
-      shopName: p.shop || shopData.name,
-      estimasi: p.estimasi || 0,
-      status:p.status
-    }));
-
-    const data = { shop: shopData, products };
-
-    // 🔹 Simpan ke cache (in-memory 1 menit)
-    cache[shop] = { timestamp: now, data };
-
-    return NextResponse.json(data, {
+    return NextResponse.json(responseData, {
       status: 200,
       headers: { "Cache-Control": "no-store" },
     });
+
   } catch (err) {
-    console.error("[API GET-SHOP]", err);
+    console.error("[API GET-SHOP ERROR]", err);
+
     return NextResponse.json(
-      { error: "Terjadi kesalahan internal server." },
+      { error: err.message || "Terjadi kesalahan server" },
       { status: 500 }
     );
   }
