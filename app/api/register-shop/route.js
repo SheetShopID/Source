@@ -4,7 +4,7 @@ const FIREBASE_URL =
   "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com/shops";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzJhaDWFIqE055K0IYegczFCep-0Ydsyhoig8S9jqcgeehjtGsIMXm1Iyq2ItuSMY696Q/exec"; // ← ganti
+  "https://script.google.com/macros/s/AKfycbzITOHSKZu_uYhegsxfpWA9V4c8CmdqHWAGrFmMACCuq4oD4dDEp5Iinkq-eWKP40Zedg/exec"; // ← ganti
 
 export async function POST(req) {
   try {
@@ -73,3 +73,4 @@ export async function POST(req) {
     );
   }
 }
+
