@@ -1,3 +1,5 @@
+import styles from "./JastipTemplate.module.css";
+
 export default function JastipTemplate({ products, utils, addToCart, setSelectedProduct }) {
   return (
     <section className={styles.grid}>
@@ -66,3 +68,4 @@ export default function JastipTemplate({ products, utils, addToCart, setSelected
     </section>
   );
 }
+
