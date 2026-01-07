@@ -74,7 +74,7 @@ export async function POST(req) {
       subdomain,
       theme,
       sheetUrl: sheetResult.sheetUrl,
-      status: "active",
+      active: true,
       createdAt: Date.now(),
     };
 
@@ -105,3 +105,4 @@ export async function POST(req) {
     );
   }
 }
+
