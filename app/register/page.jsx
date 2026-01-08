@@ -61,21 +61,7 @@ export default function RegisterPage() {
     setForm((p) => ({ ...p, subdomain: clean }));
   };
 
-  /* =========================
-     BACKGROUND PROCESS
-  ========================= */
-  const startSetup = (subdomain) => {
-    const baseUrl = window.location.origin;
-
-    // fire & forget
-    fetch(`${baseUrl}/api/setup-sheet`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subdomain }),
-    }).catch(() => {
-      // silent — status akan terlihat dari polling
-    });
-  };
+   
 
   const pollStatus = (subdomain) => {
     setProgress("⏳ Menyiapkan Google Sheet & Website...");
@@ -144,8 +130,7 @@ export default function RegisterPage() {
         throw new Error(json.error || "Registrasi gagal");
       }
 
-      showToast("Toko berhasil dibuat!");
-      startSetup(json.subdomain);
+      showToast("Toko berhasil dibuat!"); 
       pollStatus(json.subdomain);
 
     } catch (err) {
@@ -327,3 +312,4 @@ export default function RegisterPage() {
     </>
   );
 }
+
