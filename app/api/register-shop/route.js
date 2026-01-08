@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebaseAdmin";
 import { setupSheetAsync } from "@/lib/setup-sheet";
 
 export async function POST(req) {
@@ -80,3 +80,4 @@ export async function POST(req) {
     );
   }
 }
+
