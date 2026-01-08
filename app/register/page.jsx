@@ -3,7 +3,12 @@ import { useState, useRef } from "react";
 import styles from "./RegisterPage.module.css";
 import { formatRp } from "@/lib/utils";
 
+const BASE_DOMAIN = "tokoinstan.online";
+
 export default function RegisterPage() {
+  /* =========================
+     STATE
+  ========================= */
   const [form, setForm] = useState({
     name: "",
     wa: "",
@@ -14,12 +19,35 @@ export default function RegisterPage() {
 
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
   const [previewCart, setPreviewCart] = useState({});
-  const timeoutRef = useRef(null);
+  const toastTimer = useRef(null);
+  const pollTimer = useRef(null);
 
   /* =========================
-     HANDLER
+     UTIL
+  ========================= */
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(
+      () => setToast({ show: false, message: "", type: "success" }),
+      3000
+    );
+  };
+
+  const redirectToShop = (subdomain) => {
+    if (!subdomain) return;
+    window.location.href = `https://${subdomain}.${BASE_DOMAIN}`;
+  };
+
+  /* =========================
+     INPUT HANDLER
   ========================= */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,47 +55,61 @@ export default function RegisterPage() {
   };
 
   const handleSubdomainChange = (e) => {
-    const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
-    setForm((p) => ({ ...p, subdomain: val }));
-  };
-
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(
-      () => setToast({ show: false, message: "", type: "success" }),
-      3000
-    );
+    const clean = e.target.value
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "");
+    setForm((p) => ({ ...p, subdomain: clean }));
   };
 
   /* =========================
      BACKGROUND PROCESS
   ========================= */
-  const startSetup = async (subdomain) => {
+  const startSetup = (subdomain) => {
+    const baseUrl = window.location.origin;
+
     // fire & forget
-    fetch("/api/setup-sheet", {
+    fetch(`${baseUrl}/api/setup-sheet`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subdomain }),
+    }).catch(() => {
+      // silent — status akan terlihat dari polling
     });
   };
 
   const pollStatus = (subdomain) => {
     setProgress("⏳ Menyiapkan Google Sheet & Website...");
 
-    const timer = setInterval(async () => {
+    pollTimer.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/shop-status?subdomain=${subdomain}`);
+        const res = await fetch(
+          `/api/shop-status?subdomain=${subdomain}`,
+          { cache: "no-store" }
+        );
         const data = await res.json();
 
         if (data.status === "active") {
-          clearInterval(timer);
-          window.location.href = `https://${subdomain}.tokoinstan.online`;
+          clearInterval(pollTimer.current);
+          redirectToShop(subdomain);
+        }
+
+        if (data.status === "error") {
+          clearInterval(pollTimer.current);
+          setLoading(false);
+          showToast(
+            "Gagal menyiapkan Google Sheet. Silakan refresh.",
+            "error"
+          );
         }
       } catch {
-        // diamkan, polling lanjut
+        // ignore — polling lanjut
       }
     }, 3000);
+
+    // safety stop (1 menit)
+    setTimeout(() => {
+      clearInterval(pollTimer.current);
+    }, 60000);
   };
 
   /* =========================
@@ -98,21 +140,18 @@ export default function RegisterPage() {
 
       const json = await res.json();
 
-      if (!res.ok) {
-        showToast(json.error || "Gagal membuat toko", "error");
-        setLoading(false);
-        setProgress("");
-        return;
+      if (!res.ok || !json.subdomain) {
+        throw new Error(json.error || "Registrasi gagal");
       }
 
       showToast("Toko berhasil dibuat!");
       startSetup(json.subdomain);
       pollStatus(json.subdomain);
 
-    } catch {
-      showToast("Terjadi kesalahan koneksi", "error");
+    } catch (err) {
       setLoading(false);
       setProgress("");
+      showToast(err.message || "Terjadi kesalahan", "error");
     }
   };
 
@@ -153,8 +192,15 @@ export default function RegisterPage() {
   ========================= */
   const addToCart = (item) => {
     setPreviewCart((prev) => {
-      const cur = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
-      return { ...prev, [item.name]: { ...cur, qty: cur.qty + 1 } };
+      const cur = prev[item.name] || {
+        qty: 0,
+        price: item.price,
+        fee: item.fee,
+      };
+      return {
+        ...prev,
+        [item.name]: { ...cur, qty: cur.qty + 1 },
+      };
     });
   };
 
@@ -215,7 +261,7 @@ export default function RegisterPage() {
                     onChange={handleSubdomainChange}
                     required
                   />
-                  <span>.tokoinstan.online</span>
+                  <span>.{BASE_DOMAIN}</span>
                 </div>
 
                 <div className={styles.themeGrid}>
@@ -224,7 +270,9 @@ export default function RegisterPage() {
                       type="button"
                       key={t}
                       className={form.theme === t ? styles.active : ""}
-                      onClick={() => setForm((p) => ({ ...p, theme: t }))}
+                      onClick={() =>
+                        setForm((p) => ({ ...p, theme: t }))
+                      }
                     >
                       {t}
                     </button>
@@ -245,9 +293,14 @@ export default function RegisterPage() {
           {/* PREVIEW */}
           <section className={styles.previewColumn}>
             <div className={styles.mobileFrame}>
-              <div className={styles.appHeader} style={{ background: themeColor }}>
+              <div
+                className={styles.appHeader}
+                style={{ background: themeColor }}
+              >
                 <strong>{form.name || "Nama Toko"}</strong>
-                <small>{form.subdomain || "tokosaya"}.tokoinstan.online</small>
+                <small>
+                  {(form.subdomain || "tokosaya")}.{BASE_DOMAIN}
+                </small>
               </div>
 
               {previewData.map((p) => (
