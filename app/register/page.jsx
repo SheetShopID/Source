@@ -13,10 +13,9 @@ export default function RegisterPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState("");
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [previewCart, setPreviewCart] = useState({});
-  const [cartOpen, setCartOpen] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const timeoutRef = useRef(null);
 
   /* =========================
@@ -28,9 +27,7 @@ export default function RegisterPage() {
   };
 
   const handleSubdomainChange = (e) => {
-    const val = e.target.value
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "");
+    const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
     setForm((p) => ({ ...p, subdomain: val }));
   };
 
@@ -41,6 +38,36 @@ export default function RegisterPage() {
       () => setToast({ show: false, message: "", type: "success" }),
       3000
     );
+  };
+
+  /* =========================
+     BACKGROUND PROCESS
+  ========================= */
+  const startSetup = async (subdomain) => {
+    // fire & forget
+    fetch("/api/setup-sheet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subdomain }),
+    });
+  };
+
+  const pollStatus = (subdomain) => {
+    setProgress("⏳ Menyiapkan Google Sheet & Website...");
+
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/shop-status?subdomain=${subdomain}`);
+        const data = await res.json();
+
+        if (data.status === "active") {
+          clearInterval(timer);
+          window.location.href = `https://${subdomain}.tokoinstan.online`;
+        }
+      } catch {
+        // diamkan, polling lanjut
+      }
+    }, 3000);
   };
 
   /* =========================
@@ -60,6 +87,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+    setProgress("🚀 Mendaftarkan toko...");
 
     try {
       const res = await fetch("/api/register-shop", {
@@ -73,23 +101,23 @@ export default function RegisterPage() {
       if (!res.ok) {
         showToast(json.error || "Gagal membuat toko", "error");
         setLoading(false);
+        setProgress("");
         return;
       }
 
-      showToast("Toko & Google Sheet berhasil dibuat!");
-      setLoading(false);
+      showToast("Toko berhasil dibuat!");
+      startSetup(json.subdomain);
+      pollStatus(json.subdomain);
 
-      setTimeout(() => {
-        window.location.href = json.redirect;
-      }, 1500);
     } catch {
       showToast("Terjadi kesalahan koneksi", "error");
       setLoading(false);
+      setProgress("");
     }
   };
 
   /* =========================
-     PREVIEW DATA BY THEME
+     PREVIEW DATA
   ========================= */
   const previewByTheme = {
     jastip: [
@@ -110,8 +138,6 @@ export default function RegisterPage() {
     ],
   };
 
-  const previewData = previewByTheme[form.theme];
-
   const themeColors = {
     jastip: "#2f8f4a",
     makanan: "#f97316",
@@ -119,6 +145,7 @@ export default function RegisterPage() {
     beauty: "#ec4899",
   };
 
+  const previewData = previewByTheme[form.theme];
   const themeColor = themeColors[form.theme];
 
   /* =========================
@@ -129,7 +156,6 @@ export default function RegisterPage() {
       const cur = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
       return { ...prev, [item.name]: { ...cur, qty: cur.qty + 1 } };
     });
-    setCartOpen(true);
   };
 
   const cartItems = Object.entries(previewCart);
@@ -206,12 +232,12 @@ export default function RegisterPage() {
                 </div>
 
                 <button disabled={loading}>
-                  {loading ? "Menyiapkan toko & Google Sheet..." : "Buat Toko"}
+                  {loading ? "Memproses..." : "Buat Toko"}
                 </button>
 
-                <button type="button" onClick={() => setShowPreview(true)}>
-                  👀 Lihat Preview
-                </button>
+                {progress && (
+                  <div className={styles.progress}>{progress}</div>
+                )}
               </form>
             </div>
           </section>
@@ -240,7 +266,11 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {toast.show && <div>{toast.message}</div>}
+      {toast.show && (
+        <div className={`${styles.toast} ${styles[toast.type]}`}>
+          {toast.message}
+        </div>
+      )}
     </>
   );
 }
