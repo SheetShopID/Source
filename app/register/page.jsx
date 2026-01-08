@@ -3,12 +3,7 @@ import { useState, useRef } from "react";
 import styles from "./RegisterPage.module.css";
 import { formatRp } from "@/lib/utils";
 
-const BASE_DOMAIN = "tokoinstan.online";
-
 export default function RegisterPage() {
-  /* =========================
-     STATE
-  ========================= */
   const [form, setForm] = useState({
     name: "",
     wa: "",
@@ -18,36 +13,14 @@ export default function RegisterPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState("");
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
-
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [previewCart, setPreviewCart] = useState({});
-  const toastTimer = useRef(null);
-  const pollTimer = useRef(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const timeoutRef = useRef(null);
 
   /* =========================
-     UTIL
-  ========================= */
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(
-      () => setToast({ show: false, message: "", type: "success" }),
-      3000
-    );
-  };
-
-  const redirectToShop = (subdomain) => {
-    if (!subdomain) return;
-    window.location.href = `https://${subdomain}.${BASE_DOMAIN}`;
-  };
-
-  /* =========================
-     INPUT HANDLER
+     HANDLER
   ========================= */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,47 +28,19 @@ export default function RegisterPage() {
   };
 
   const handleSubdomainChange = (e) => {
-    const clean = e.target.value
+    const val = e.target.value
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, "");
-    setForm((p) => ({ ...p, subdomain: clean }));
+    setForm((p) => ({ ...p, subdomain: val }));
   };
 
-   
-
-  const pollStatus = (subdomain) => {
-    setProgress("⏳ Menyiapkan Google Sheet & Website...");
-
-    pollTimer.current = setInterval(async () => {
-      try {
-        const res = await fetch(
-          `/api/shop-status?subdomain=${subdomain}`,
-          { cache: "no-store" }
-        );
-        const data = await res.json();
-
-        if (data.status === "active") {
-          clearInterval(pollTimer.current);
-          redirectToShop(subdomain);
-        }
-
-        if (data.status === "error") {
-          clearInterval(pollTimer.current);
-          setLoading(false);
-          showToast(
-            "Gagal menyiapkan Google Sheet. Silakan refresh.",
-            "error"
-          );
-        }
-      } catch {
-        // ignore — polling lanjut
-      }
-    }, 3000);
-
-    // safety stop (1 menit)
-    setTimeout(() => {
-      clearInterval(pollTimer.current);
-    }, 60000);
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(
+      () => setToast({ show: false, message: "", type: "success" }),
+      3000
+    );
   };
 
   /* =========================
@@ -115,7 +60,6 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    setProgress("🚀 Mendaftarkan toko...");
 
     try {
       const res = await fetch("/api/register-shop", {
@@ -126,22 +70,26 @@ export default function RegisterPage() {
 
       const json = await res.json();
 
-      if (!res.ok || !json.subdomain) {
-        throw new Error(json.error || "Registrasi gagal");
+      if (!res.ok) {
+        showToast(json.error || "Gagal membuat toko", "error");
+        setLoading(false);
+        return;
       }
 
-      showToast("Toko berhasil dibuat!"); 
-      pollStatus(json.subdomain);
-
-    } catch (err) {
+      showToast("Toko & Google Sheet berhasil dibuat!");
       setLoading(false);
-      setProgress("");
-      showToast(err.message || "Terjadi kesalahan", "error");
+
+      setTimeout(() => {
+        window.location.href = json.redirect;
+      }, 1500);
+    } catch {
+      showToast("Terjadi kesalahan koneksi", "error");
+      setLoading(false);
     }
   };
 
   /* =========================
-     PREVIEW DATA
+     PREVIEW DATA BY THEME
   ========================= */
   const previewByTheme = {
     jastip: [
@@ -162,6 +110,8 @@ export default function RegisterPage() {
     ],
   };
 
+  const previewData = previewByTheme[form.theme];
+
   const themeColors = {
     jastip: "#2f8f4a",
     makanan: "#f97316",
@@ -169,7 +119,6 @@ export default function RegisterPage() {
     beauty: "#ec4899",
   };
 
-  const previewData = previewByTheme[form.theme];
   const themeColor = themeColors[form.theme];
 
   /* =========================
@@ -177,16 +126,10 @@ export default function RegisterPage() {
   ========================= */
   const addToCart = (item) => {
     setPreviewCart((prev) => {
-      const cur = prev[item.name] || {
-        qty: 0,
-        price: item.price,
-        fee: item.fee,
-      };
-      return {
-        ...prev,
-        [item.name]: { ...cur, qty: cur.qty + 1 },
-      };
+      const cur = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
+      return { ...prev, [item.name]: { ...cur, qty: cur.qty + 1 } };
     });
+    setCartOpen(true);
   };
 
   const cartItems = Object.entries(previewCart);
@@ -246,7 +189,7 @@ export default function RegisterPage() {
                     onChange={handleSubdomainChange}
                     required
                   />
-                  <span>.{BASE_DOMAIN}</span>
+                  <span>.tokoinstan.online</span>
                 </div>
 
                 <div className={styles.themeGrid}>
@@ -255,9 +198,7 @@ export default function RegisterPage() {
                       type="button"
                       key={t}
                       className={form.theme === t ? styles.active : ""}
-                      onClick={() =>
-                        setForm((p) => ({ ...p, theme: t }))
-                      }
+                      onClick={() => setForm((p) => ({ ...p, theme: t }))}
                     >
                       {t}
                     </button>
@@ -265,12 +206,12 @@ export default function RegisterPage() {
                 </div>
 
                 <button disabled={loading}>
-                  {loading ? "Memproses..." : "Buat Toko"}
+                  {loading ? "Menyiapkan toko & Google Sheet..." : "Buat Toko"}
                 </button>
 
-                {progress && (
-                  <div className={styles.progress}>{progress}</div>
-                )}
+                <button type="button" onClick={() => setShowPreview(true)}>
+                  👀 Lihat Preview
+                </button>
               </form>
             </div>
           </section>
@@ -278,14 +219,9 @@ export default function RegisterPage() {
           {/* PREVIEW */}
           <section className={styles.previewColumn}>
             <div className={styles.mobileFrame}>
-              <div
-                className={styles.appHeader}
-                style={{ background: themeColor }}
-              >
+              <div className={styles.appHeader} style={{ background: themeColor }}>
                 <strong>{form.name || "Nama Toko"}</strong>
-                <small>
-                  {(form.subdomain || "tokosaya")}.{BASE_DOMAIN}
-                </small>
+                <small>{form.subdomain || "tokosaya"}.tokoinstan.online</small>
               </div>
 
               {previewData.map((p) => (
@@ -304,12 +240,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {toast.show && (
-        <div className={`${styles.toast} ${styles[toast.type]}`}>
-          {toast.message}
-        </div>
-      )}
+      {toast.show && <div>{toast.message}</div>}
     </>
   );
 }
-
