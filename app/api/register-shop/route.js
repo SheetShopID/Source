@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-
-const FIREBASE_BASE =
-  "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
+import { db } from "@/lib/firebase-admin";
+import { setupSheetAsync } from "@/lib/setup-sheet";
 
 export async function POST(req) {
   try {
-    const { name, wa, email, subdomain, theme } = await req.json();
+    const body = await req.json();
+    const { name, wa, email, subdomain, theme } = body;
 
-    // =========================
-    // VALIDASI
-    // =========================
+    /* =========================
+       VALIDATION
+    ========================= */
     if (!name || !wa || !email || !subdomain || !theme) {
       return NextResponse.json(
         { error: "Data tidak lengkap" },
@@ -17,55 +17,63 @@ export async function POST(req) {
       );
     }
 
-    const RESERVED = ["www", "admin", "api"];
-    if (RESERVED.includes(subdomain)) {
+    if (!email.endsWith("@gmail.com")) {
       return NextResponse.json(
-        { error: "Subdomain tidak diperbolehkan" },
+        { error: "Gunakan email Gmail" },
         { status: 400 }
       );
     }
 
-    const shopUrl = `${FIREBASE_BASE}/shops/${subdomain}.json`;
+    if (subdomain.length < 4) {
+      return NextResponse.json(
+        { error: "Subdomain minimal 4 karakter" },
+        { status: 400 }
+      );
+    }
 
-    // =========================
-    // CEK SUBDOMAIN
-    // =========================
-    const check = await fetch(shopUrl, { cache: "no-store" });
-    if (await check.json()) {
+    const ref = db.collection("shops").doc(subdomain);
+    const existing = await ref.get();
+
+    if (existing.exists) {
       return NextResponse.json(
         { error: "Subdomain sudah digunakan" },
         { status: 409 }
       );
     }
 
-    // =========================
-    // SIMPAN (CEPAT)
-    // =========================
-    const shopData = {
+    /* =========================
+       SAVE INITIAL DATA
+    ========================= */
+    const payload = {
       name,
       wa,
       email,
-      subdomain,
       theme,
+      subdomain,
       status: "processing",
       createdAt: Date.now(),
     };
 
-    await fetch(shopUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(shopData),
+    await ref.set(payload);
+
+    /* =========================
+       BACKGROUND SETUP (ASYNC)
+       🔥 PENTING: JANGAN AWAIT
+    ========================= */
+    setupSheetAsync(subdomain).catch((err) => {
+      console.error("SETUP FAILED:", subdomain, err);
     });
 
-    // =========================
-    // RESPONSE CEPAT
-    // =========================
+    /* =========================
+       RESPONSE FAST ⚡
+    ========================= */
     return NextResponse.json({
       success: true,
       subdomain,
     });
 
   } catch (err) {
+    console.error("REGISTER ERROR:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }
