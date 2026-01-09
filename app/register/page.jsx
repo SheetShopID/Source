@@ -1,23 +1,46 @@
 "use client";
-import { useState, useRef } from "react";
+
+import { useState, useRef, useEffect } from "react";
 import styles from "./RegisterPage.module.css";
 import { formatRp } from "@/lib/utils";
 
-export default function RegisterPage() {
-  const [form, setForm] = useState({
-    name: "",
-    wa: "",
-    email: "",
-    subdomain: "",
-    theme: "jastip",
-  });
+/* =========================
+   INITIAL STATE
+========================= */
+const INITIAL_FORM = {
+  name: "",
+  wa: "",
+  email: "",
+  subdomain: "",
+  theme: "jastip",
+};
 
+export default function RegisterPage() {
+  /* =========================
+     STATE
+  ========================= */
+  const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
   const [previewCart, setPreviewCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const timeoutRef = useRef(null);
+
+  /* =========================
+     RESET SAAT PAGE LOAD
+  ========================= */
+  useEffect(() => {
+    setForm(INITIAL_FORM);
+    setPreviewCart({});
+    setCartOpen(false);
+    setShowPreview(false);
+    setToast({ show: false, message: "", type: "success" });
+  }, []);
 
   /* =========================
      HANDLER
@@ -37,10 +60,9 @@ export default function RegisterPage() {
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(
-      () => setToast({ show: false, message: "", type: "success" }),
-      3000
-    );
+    timeoutRef.current = setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
   };
 
   /* =========================
@@ -71,18 +93,17 @@ export default function RegisterPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        if (json.error?.includes("diproses")) {
-          showToast("Website sedang disiapkan, mohon tunggu sebentar 🙏", "error");
-        } else {
-          showToast(json.error || "Gagal membuat toko", "error");
-        }
+        showToast(json.error || "Gagal membuat toko", "error");
         setLoading(false);
         return;
       }
 
-
       showToast("Toko & Google Sheet berhasil dibuat!");
-      setLoading(false);
+
+      // reset state sebelum redirect (aman & bersih)
+      setForm(INITIAL_FORM);
+      setPreviewCart({});
+      setCartOpen(false);
 
       setTimeout(() => {
         window.location.href = json.redirect;
@@ -94,7 +115,7 @@ export default function RegisterPage() {
   };
 
   /* =========================
-     PREVIEW DATA BY THEME
+     PREVIEW DATA
   ========================= */
   const previewByTheme = {
     jastip: [
@@ -131,8 +152,12 @@ export default function RegisterPage() {
   ========================= */
   const addToCart = (item) => {
     setPreviewCart((prev) => {
-      const cur = prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
-      return { ...prev, [item.name]: { ...cur, qty: cur.qty + 1 } };
+      const cur =
+        prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
+      return {
+        ...prev,
+        [item.name]: { ...cur, qty: cur.qty + 1 },
+      };
     });
     setCartOpen(true);
   };
@@ -164,6 +189,7 @@ export default function RegisterPage() {
                   className={styles.formInput}
                   name="name"
                   placeholder="Nama Toko"
+                  value={form.name}
                   onChange={handleInputChange}
                   required
                 />
@@ -172,6 +198,7 @@ export default function RegisterPage() {
                   className={styles.formInput}
                   name="wa"
                   placeholder="Nomor WhatsApp"
+                  value={form.wa}
                   onChange={handleInputChange}
                   required
                 />
@@ -180,10 +207,13 @@ export default function RegisterPage() {
                   className={styles.formInput}
                   name="email"
                   placeholder="email@gmail.com"
+                  value={form.email}
                   onChange={handleInputChange}
                   required
                 />
-                <small>Google Sheet akan otomatis dibagikan ke email ini</small>
+                <small>
+                  Google Sheet akan otomatis dibagikan ke email ini
+                </small>
 
                 <div className={styles.inputWrapper}>
                   <input
@@ -203,7 +233,9 @@ export default function RegisterPage() {
                       type="button"
                       key={t}
                       className={form.theme === t ? styles.active : ""}
-                      onClick={() => setForm((p) => ({ ...p, theme: t }))}
+                      onClick={() =>
+                        setForm((p) => ({ ...p, theme: t }))
+                      }
                     >
                       {t}
                     </button>
@@ -211,10 +243,15 @@ export default function RegisterPage() {
                 </div>
 
                 <button disabled={loading}>
-                  {loading ? "Menyiapkan toko & Google Sheet..." : "Buat Toko"}
+                  {loading
+                    ? "Menyiapkan toko & Google Sheet..."
+                    : "Buat Toko"}
                 </button>
 
-                <button type="button" onClick={() => setShowPreview(true)}>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(true)}
+                >
                   👀 Lihat Preview
                 </button>
               </form>
@@ -224,9 +261,14 @@ export default function RegisterPage() {
           {/* PREVIEW */}
           <section className={styles.previewColumn}>
             <div className={styles.mobileFrame}>
-              <div className={styles.appHeader} style={{ background: themeColor }}>
+              <div
+                className={styles.appHeader}
+                style={{ background: themeColor }}
+              >
                 <strong>{form.name || "Nama Toko"}</strong>
-                <small>{form.subdomain || "tokosaya"}.tokoinstan.online</small>
+                <small>
+                  {form.subdomain || "tokosaya"}.tokoinstan.online
+                </small>
               </div>
 
               {previewData.map((p) => (
@@ -249,4 +291,3 @@ export default function RegisterPage() {
     </>
   );
 }
-
