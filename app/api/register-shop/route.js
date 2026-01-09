@@ -8,7 +8,7 @@ export async function POST(req) {
     const { name, wa, email, subdomain, theme } = body;
 
     // ===========================
-    // 0️⃣ VALIDASI
+    // 0️⃣ VALIDASI tes
     // ===========================
     if (!name || !wa || !email || !subdomain || !theme) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
@@ -85,3 +85,4 @@ export async function POST(req) {
     return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
   }
 }
+
