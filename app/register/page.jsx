@@ -8,10 +8,10 @@ export default function RegisterPage() {
     purpose: "service",
     category: "",
     theme: "jastip",
-    name: "",        // ✅ Kembali ke field lama
-    wa: "",          // ✅ Kembali ke field lama
+    name: "",
+    wa: "",
     email: "",
-    subdomain: "",   // ✅ Kembali ke field lama
+    subdomain: "",
   });
   const [loadingText, setLoadingText] = useState("");
   const [urlStatus, setUrlStatus] = useState("");
@@ -21,7 +21,7 @@ export default function RegisterPage() {
   // ---------------------------
   const selectPurpose = (type) => setState({ ...state, purpose: type });
   const selectCategory = (cat) => setState({ ...state, category: cat });
-  const selectTheme = (theme) => setState({ ...state, theme });
+  const selectTheme = (theme) => setState({ ...state, theme: theme });
 
   const updateSlug = (name) => {
     const slug = name
@@ -43,7 +43,7 @@ export default function RegisterPage() {
   };
 
   // ---------------------------
-  // API Submit (sinkron dengan loading)
+  // API Submit (sinkron loading)
   // ---------------------------
   const submitStep5 = async () => {
     if (!state.name || !state.wa || !state.email)
@@ -66,7 +66,6 @@ export default function RegisterPage() {
       const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // ✅ Sesuaikan body agar sama seperti versi lama
         body: JSON.stringify({
           name: state.name,
           wa: state.wa,
@@ -86,7 +85,7 @@ export default function RegisterPage() {
       setTimeout(() => {
         window.location.href = json.redirect;
       }, 1500);
-    } catch (e) {
+    } catch {
       alert("Terjadi kesalahan. Coba lagi.");
       setStep(5);
     }
@@ -134,7 +133,9 @@ export default function RegisterPage() {
           </div>
 
           <div
-            className={styles.card}
+            className={`${styles.card} ${
+              state.purpose === "product" ? styles.cardSelected : ""
+            }`}
             onClick={() => selectPurpose("product")}
           >
             <div className={styles.cardTitle}>Jual Produk / Katalog Online</div>
@@ -143,19 +144,144 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          <div
+            className={styles.card}
+            onClick={() =>
+              alert("Ini akan membuka halaman contoh website (Demo).")
+            }
+          >
+            <div className={styles.cardTitle}>Saya mau lihat contoh dulu</div>
+            <div className={styles.cardDesc}>
+              Lihat bagaimana website jadi nantinya
+            </div>
+          </div>
+
           <button
             className={`${styles.btn} ${styles.btnPrimary}`}
-            onClick={() => nextStep(5)}
+            onClick={() => nextStep(2)}
           >
             Lanjut
           </button>
         </div>
       )}
 
-      {/* STEP 5 */}
+      {/* STEP 2 - PILIH KATEGORI */}
+      {step === 2 && (
+        <div className={`${styles.stepContainer} ${styles.active}`}>
+          <h2>Pilih kategori bisnis kamu</h2>
+          <div className={styles.grid2}>
+            {["jastip", "makanan", "laundry", "fashion"].map((cat) => (
+              <div
+                key={cat}
+                className={`${styles.gridItem} ${
+                  state.category === cat ? styles.gridItemSelected : ""
+                }`}
+                onClick={() => selectCategory(cat)}
+              >
+                <div className={styles.gridIcon}>📦</div>
+                <div className={styles.gridLabel}>{cat.toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={() => nextStep(3)}
+          >
+            Lanjut
+          </button>
+          <button
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            onClick={() => prevStep(1)}
+          >
+            Kembali
+          </button>
+        </div>
+      )}
+
+      {/* STEP 3 - PILIH TEMA */}
+      {step === 3 && (
+        <div className={`${styles.stepContainer} ${styles.active}`}>
+          <h2>Pilih tampilan tema</h2>
+          <div className={styles.grid2}>
+            {["jastip", "makanan", "laundry", "gelap"].map((theme) => (
+              <div
+                key={theme}
+                className={`${styles.gridItem} ${
+                  state.theme === theme ? styles.gridItemSelected : ""
+                }`}
+                onClick={() => selectTheme(theme)}
+              >
+                <div className={styles.gridIcon}>🎨</div>
+                <div className={styles.gridLabel}>{theme}</div>
+              </div>
+            ))}
+          </div>
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={() => nextStep(4)}
+          >
+            Lanjut
+          </button>
+          <button
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            onClick={() => prevStep(2)}
+          >
+            Kembali
+          </button>
+        </div>
+      )}
+
+      {/* STEP 4 - PREVIEW THEME */}
+      {step === 4 && (
+        <div className={`${styles.stepContainer} ${styles.active}`}>
+          <h2>Pratinjau Tampilan Tema</h2>
+          <div className={styles.previewFrame}>
+            <div className={styles.previewHeader}>
+              <h3 style={{ margin: 0, fontSize: 18 }}>{state.theme}</h3>
+              <span style={{ fontSize: 12, opacity: 0.9 }}>
+                Contoh tampilan {state.theme}
+              </span>
+            </div>
+            <div className={styles.previewBody}>
+              <div className={styles.previewItem}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>Produk A</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>
+                    Deskripsi singkat
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, color: "#008069" }}>Rp 25rb</div>
+              </div>
+              <div className={styles.previewItem}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>Produk B</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>
+                    Contoh produk lain
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, color: "#008069" }}>Rp 30rb</div>
+              </div>
+            </div>
+          </div>
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={() => nextStep(5)}
+          >
+            Lanjut Isi Data
+          </button>
+          <button
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            onClick={() => prevStep(3)}
+          >
+            Kembali
+          </button>
+        </div>
+      )}
+
+      {/* STEP 5 - FORM */}
       {step === 5 && (
         <div className={`${styles.stepContainer} ${styles.active}`}>
-          <h2>Sedikit lagi, isi identitas toko kamu</h2>
+          <h2>Isi identitas toko kamu</h2>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>
@@ -191,11 +317,7 @@ export default function RegisterPage() {
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Alamat Website</label>
-            <input
-              className={styles.input}
-              value={state.subdomain}
-              readOnly
-            />
+            <input className={styles.input} value={state.subdomain} readOnly />
             <div className={styles.validationStatus}>{urlStatus}</div>
           </div>
 
@@ -208,7 +330,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* STEP 6 Loading */}
+      {/* STEP 6 - LOADING */}
       {step === 6 && (
         <div className={`${styles.overlayFull} ${styles.overlayShow}`}>
           <div className={styles.spinner}></div>
@@ -216,7 +338,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* STEP 7 */}
+      {/* STEP 7 - SUCCESS */}
       {step === 7 && (
         <div className={`${styles.stepContainer} ${styles.active}`} style={{ textAlign: "center" }}>
           <div style={{ fontSize: "64px", marginBottom: "10px" }}>🎉</div>
@@ -235,7 +357,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* STEP 8 Preview */}
+      {/* STEP 8 - PREVIEW */}
       {step === 8 && (
         <div className={`${styles.stepContainer} ${styles.active}`} style={{ padding: 0, background: "#333", color: "white" }}>
           <div style={{ padding: 16, textAlign: "center" }}>
