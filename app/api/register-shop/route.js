@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
 
-const FIREBASE_BASE =
-  "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
+const FIREBASE_BASE = "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
 
 export async function POST(req) {
   try {
     const body = await req.json();
     const { name, wa, email, subdomain, theme } = body;
 
-    // ==================================================
-    // 0️⃣ VALIDASI INPUT
-    // ==================================================
+    // ===========================
+    // 0️⃣ VALIDASI
+    // ===========================
     if (!name || !wa || !email || !subdomain || !theme) {
-      return NextResponse.json(
-        { error: "Data tidak lengkap" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
     }
 
     if (!/^[a-z0-9-]+$/.test(subdomain)) {
@@ -26,107 +21,67 @@ export async function POST(req) {
       );
     }
 
-    const RESERVED = ["www", "admin", "api"];
-    if (RESERVED.includes(subdomain)) {
+    if (!email.endsWith("@gmail.com")) {
       return NextResponse.json(
-        { error: "Subdomain tidak diperbolehkan" },
+        { error: "Gunakan email Gmail untuk Google Sheet" },
         { status: 400 }
       );
     }
 
-    const shopUrl = `${FIREBASE_BASE}/shops/${subdomain}.json`;
+    const RESERVED = ["www", "admin", "api"];
+    if (RESERVED.includes(subdomain)) {
+      return NextResponse.json({ error: "Subdomain tidak diperbolehkan" }, { status: 400 });
+    }
 
-    // ==================================================
+    // ===========================
     // 1️⃣ CEK SUBDOMAIN DI FIREBASE
-    // ==================================================
+    // ===========================
+    const shopUrl = `${FIREBASE_BASE}/shops/${subdomain}.json`;
     const checkRes = await fetch(shopUrl, { cache: "no-store" });
     const exists = await checkRes.json();
-
     if (exists) {
-      return NextResponse.json(
-        { error: "Subdomain sudah digunakan" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "Subdomain sudah digunakan" }, { status: 409 });
     }
 
-    // ==================================================
-    // 2️⃣ APPS SCRIPT → COPY SHEET + SHARE GMAIL
-    // ==================================================
-    const scriptRes = await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "createSheet",
-        email,
-        shopName: name,
-        theme,
-      }),
-    });
-
-    const scriptText = await scriptRes.text();
-    let scriptJson;
-
-    try {
-      scriptJson = JSON.parse(scriptText);
-    } catch (err) {
-      console.error("[APPS SCRIPT NON-JSON]", scriptText);
-      throw new Error("Apps Script tidak mengembalikan JSON");
-    }
-
-    if (!scriptRes.ok || !scriptJson.ok) {
-      console.error("[APPS SCRIPT ERROR]", scriptJson);
-      throw new Error(scriptJson.error || "Gagal membuat Google Sheet");
-    }
-
-    const { sheetId, sheetUrl } = scriptJson;
-
-    if (!sheetId || !sheetUrl) {
-      throw new Error("Sheet ID / URL tidak valid");
-    }
-
-    // ==================================================
-    // 3️⃣ SIMPAN DATA TOKO KE FIREBASE
-    // ==================================================
+    // ===========================
+    // 2️⃣ SIMPAN SHOP CEPAT → STATUS CREATING
+    // ===========================
     const shopData = {
       name,
       wa,
       email,
       subdomain,
       theme,
-      sheetId,
-      sheetUrl,
-      active: true,
+      active: false,
+      status: "creating",
       createdAt: Date.now(),
     };
 
-    const saveRes = await fetch(shopUrl, {
+    await fetch(shopUrl, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(shopData),
     });
 
-    if (!saveRes.ok) {
-      const errText = await saveRes.text();
-      console.error("[FIREBASE ERROR]", errText);
-      throw new Error("Gagal menyimpan data ke Firebase");
-    }
+    // ===========================
+    // 3️⃣ TRIGGER BACKGROUND SETUP
+    // ===========================
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/register-shop-bg`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, theme, subdomain }),
+    }).catch(console.error);
 
-    console.log("[REGISTER SHOP SUCCESS]", subdomain);
-
-    // ==================================================
-    // 4️⃣ RESPONSE SUCCESS
-    // ==================================================
+    // ===========================
+    // 4️⃣ RESPONSE CEPAT
+    // ===========================
     return NextResponse.json({
       success: true,
-      redirect: `https://${subdomain}.tokoinstan.online`,
+      redirect: `https://${subdomain}.tokoinstan.online/setup`,
     });
 
   } catch (err) {
     console.error("[REGISTER SHOP ERROR]", err);
-
-    return NextResponse.json(
-      { error: err.message || "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
   }
 }
