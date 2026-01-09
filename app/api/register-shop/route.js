@@ -1,105 +1,100 @@
 import { NextResponse } from "next/server";
 
-const FIREBASE_BASE =
-  "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
-
+const FIREBASE_BASE = "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
 
+/** 🔹 Utility: kirim log ke Firebase (non-blocking) */
+async function pushLog(label, data, requestId) {
+  try {
+    const ts = new Date().toISOString();
+    const payload = { ts, label, data, requestId };
+    await fetch(`${FIREBASE_BASE}/logs.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("[LOGGING FAILED]", err.message);
+  }
+}
+
+/** 🔹 Generate unique requestId */
+function makeRequestId() {
+  return (
+    "req_" +
+    Date.now().toString(36) +
+    "_" +
+    Math.random().toString(36).substring(2, 8)
+  );
+}
+
 export async function POST(req) {
-  console.log("[1] REGISTER API HIT");
+  const requestId = makeRequestId();
   const startTime = Date.now();
+
+  await pushLog("REGISTER_API_HIT", {}, requestId);
 
   try {
     // ==================================================
-    // 0️⃣ VALIDASI ENV
+    // 1️⃣ ENV VALIDATION
     // ==================================================
-    if (!APPS_SCRIPT_URL) {
-      throw new Error("APPS_SCRIPT_URL belum diset");
-    }
+    if (!APPS_SCRIPT_URL) throw new Error("APPS_SCRIPT_URL belum diset");
 
     // ==================================================
-    // 1️⃣ PARSE & VALIDASI BODY
+    // 2️⃣ PARSE BODY
     // ==================================================
     const body = await req.json();
     const { name, wa, email, subdomain, theme } = body;
 
-    console.log("[2] BODY PARSED", email);
+    await pushLog("BODY_PARSED", { email, subdomain, theme }, requestId);
 
-    if (!name || !wa || !email || !subdomain || !theme) {
-      return NextResponse.json(
-        { error: "Data tidak lengkap" },
-        { status: 400 }
-      );
-    }
-
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
-      return NextResponse.json(
-        { error: "Subdomain hanya boleh huruf kecil, angka, dan -" },
-        { status: 400 }
-      );
-    }
-
-    const RESERVED = ["www", "admin", "api"];
-    if (RESERVED.includes(subdomain)) {
-      return NextResponse.json(
-        { error: "Subdomain tidak diperbolehkan" },
-        { status: 400 }
-      );
-    }
+    if (!name || !wa || !email || !subdomain || !theme)
+      return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
 
     // ==================================================
-    // 2️⃣ CEK SUBDOMAIN DI FIREBASE
+    // 3️⃣ VALIDASI SUBDOMAIN
+    // ==================================================
+    const RESERVED = ["www", "admin", "api"];
+    if (!/^[a-z0-9-]+$/.test(subdomain))
+      return NextResponse.json({ error: "Subdomain hanya huruf kecil/angka/-" }, { status: 400 });
+    if (RESERVED.includes(subdomain))
+      return NextResponse.json({ error: "Subdomain tidak diperbolehkan" }, { status: 400 });
+
+    // ==================================================
+    // 4️⃣ CHECK FIREBASE DUPLICATE
     // ==================================================
     const shopUrl = `${FIREBASE_BASE}/shops/${subdomain}.json`;
+    const shopCheck = await fetch(shopUrl, { cache: "no-store" });
+    const exists = await shopCheck.json();
+    if (exists)
+      return NextResponse.json({ error: "Subdomain sudah digunakan" }, { status: 409 });
 
-    console.log("[3] CHECK SUBDOMAIN", subdomain);
-
-    const checkRes = await fetch(shopUrl, { cache: "no-store" });
-    const exists = await checkRes.json();
-
-    if (exists) {
-      return NextResponse.json(
-        { error: "Subdomain sudah digunakan" },
-        { status: 409 }
-      );
-    }
-
-    // ==================================================
-    // 2️⃣b CEK EMAIL DUPLIKAT
-    // ==================================================
-    console.log("[3b] CHECK EMAIL DUPLICATE");
-
-    const allShopsRes = await fetch(
-      `${FIREBASE_BASE}/shops.json`,
-      { cache: "no-store" }
-    );
-    const allShops = await allShopsRes.json();
+    const allShops = await fetch(`${FIREBASE_BASE}/shops.json`, { cache: "no-store" })
+      .then((r) => r.json())
+      .catch(() => null);
 
     if (allShops) {
-      const emailUsed = Object.values(allShops).some(
-        (shop) => shop.email === email && shop.active
+      const duplicate = Object.values(allShops).some(
+        (s) => s.email === email && s.active
       );
-
-      if (emailUsed) {
+      if (duplicate)
         return NextResponse.json(
-          {
-            error:
-              "Email ini sudah memiliki toko aktif. Silakan gunakan email lain.",
-          },
+          { error: "Email ini sudah memiliki toko aktif." },
           { status: 409 }
         );
-      }
     }
 
     // ==================================================
-    // 3️⃣ APPS SCRIPT → CREATE & SHARE SHEET
+    // 5️⃣ CALL APPS SCRIPT (ASYNC SAFE)
     // ==================================================
-    console.log("[4] CALL APPS SCRIPT");
+    await pushLog("CALL_APPS_SCRIPT", { APPS_SCRIPT_URL }, requestId);
 
     let sheetId = null;
-    let sheetUrlResult = null;
+    let sheetUrl = null;
+    let scriptDuration = 0;
 
     try {
+      const t0 = Date.now();
       const scriptRes = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,47 +103,37 @@ export async function POST(req) {
           email,
           shopName: name,
           theme,
+          requestId,
         }),
       });
 
       const scriptText = await scriptRes.text();
+      scriptDuration = Date.now() - t0;
 
       let scriptJson;
       try {
         scriptJson = JSON.parse(scriptText);
       } catch {
-        console.error("[APPS SCRIPT NON-JSON]", scriptText);
-        throw new Error("Apps Script response tidak valid");
+        await pushLog("APPS_SCRIPT_NON_JSON", { scriptText }, requestId);
+        throw new Error("Apps Script response bukan JSON");
       }
 
-      if (!scriptRes.ok || !scriptJson.ok) {
-        console.error("[APPS SCRIPT ERROR]", scriptJson);
+      if (!scriptJson.ok) {
+        await pushLog("APPS_SCRIPT_FAIL", scriptJson, requestId);
         throw new Error(scriptJson.error || "Apps Script gagal");
       }
 
-      if (!scriptJson.sheetId || !scriptJson.sheetUrl) {
-        console.error("[APPS SCRIPT INVALID DATA]", scriptJson);
-        throw new Error("Sheet ID / URL kosong");
-      }
-
       sheetId = scriptJson.sheetId;
-      sheetUrlResult = scriptJson.sheetUrl;
-
-      console.log("[5] SHEET CREATED", sheetId);
+      sheetUrl = scriptJson.sheetUrl;
+      await pushLog("SHEET_CREATED", { sheetId, sheetUrl, scriptDuration }, requestId);
     } catch (err) {
-      console.error("[APPS SCRIPT FAILED - ABORT FIREBASE]", err);
-      throw err; // ⛔ STOP TOTAL
+      await pushLog("APPS_SCRIPT_ERROR", { message: err.message }, requestId);
+      throw err;
     }
 
     // ==================================================
-    // 4️⃣ SIMPAN DATA TOKO KE FIREBASE (FINAL STEP)
+    // 6️⃣ SAVE TO FIREBASE
     // ==================================================
-    if (!sheetId || !sheetUrlResult) {
-      throw new Error("Sheet belum berhasil dibuat, abort save");
-    }
-
-    console.log("[6] SAVE TO FIREBASE");
-
     const shopData = {
       name,
       wa,
@@ -156,9 +141,10 @@ export async function POST(req) {
       subdomain,
       theme,
       sheetId,
-      sheetUrl: sheetUrlResult,
+      sheetUrl,
       active: true,
       createdAt: Date.now(),
+      requestId,
     };
 
     const saveRes = await fetch(shopUrl, {
@@ -169,31 +155,26 @@ export async function POST(req) {
 
     if (!saveRes.ok) {
       const errText = await saveRes.text();
-      console.error("[FIREBASE ERROR]", errText);
+      await pushLog("FIREBASE_SAVE_FAIL", { errText }, requestId);
       throw new Error("Gagal menyimpan data ke Firebase");
     }
 
-    // ==================================================
-    // 5️⃣ RESPONSE SUCCESS
-    // ==================================================
-    console.log(
-      "[7] REGISTER SHOP SUCCESS",
+    await pushLog("REGISTER_SUCCESS", {
+      duration: Date.now() - startTime,
       subdomain,
-      Date.now() - startTime,
-      "ms"
-    );
+    }, requestId);
 
+    // ==================================================
+    // 7️⃣ RETURN SUCCESS
+    // ==================================================
     return NextResponse.json({
       success: true,
       redirect: `https://${subdomain}.tokoinstan.online`,
+      sheetUrl,
+      requestId,
     });
-
   } catch (err) {
-    console.error("[REGISTER SHOP ERROR]", err);
-
-    return NextResponse.json(
-      { error: err.message || "Server error" },
-      { status: 500 }
-    );
+    await pushLog("REGISTER_ERROR", { message: err.message, stack: err.stack }, requestId);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
