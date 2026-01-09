@@ -14,3 +14,19 @@ body {
 }
 
 
+:root {
+  --primary: #008069;
+  --primary-dark: #006d59;
+  --accent: #FFD700;
+  --bg: #F5F7FA;
+  --surface: #FFFFFF;
+  --text-main: #1F2937;
+  --text-sub: #6B7280;
+  --border: #E5E7EB;
+  --success: #10B981;
+  --danger: #EF4444;
+  --radius: 16px;
+  --transition: 0.3s ease;
+}
+
+
