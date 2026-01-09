@@ -3,14 +3,23 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+/**
+ * API selalu dipanggil ke DOMAIN UTAMA
+ * karena subdomain toko TIDAK memiliki route /api
+ */
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "https://tokoinstan.online";
+
 export default function SetupClient() {
   const searchParams = useSearchParams();
   const [message, setMessage] = useState("Sedang menyiapkan toko…");
   const [status, setStatus] = useState("creating");
 
-  // Ambil subdomain:
-  // 1️⃣ dari ?shop=xxx
-  // 2️⃣ fallback dari hostname (subdomain)
+  /**
+   * Ambil subdomain toko:
+   * 1️⃣ dari query ?shop=xxx
+   * 2️⃣ fallback dari hostname (tesjumat.tokoinstan.online → tesjumat)
+   */
   const shop =
     searchParams.get("shop") ||
     (typeof window !== "undefined"
@@ -22,11 +31,12 @@ export default function SetupClient() {
 
     let intervalId;
 
-    const checkStatus = async () => {
+    const checkShopReady = async () => {
       try {
-        const res = await fetch(`/api/get-shop?shop=${shop}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `${API_BASE}/api/get-shop?shop=${shop}`,
+          { cache: "no-store" }
+        );
 
         const data = await res.json();
 
@@ -35,13 +45,9 @@ export default function SetupClient() {
         }
 
         /**
-         * Karena get-shop FINAL kamu
-         * tidak pakai status "creating / ready",
-         * maka logikanya:
-         * - kalau toko ADA → redirect
-         * - kalau belum → tetap loading
+         * Jika toko SUDAH ADA → redirect
+         * Jika belum → tetap loading (polling)
          */
-
         if (data.shop) {
           setStatus("ready");
           setMessage("Toko siap! Mengalihkan…");
@@ -53,17 +59,17 @@ export default function SetupClient() {
           }, 1000);
         }
       } catch (err) {
-        console.warn("[SETUP CHECK]", err.message);
+        // toko belum siap → lanjut polling
         setStatus("creating");
         setMessage("Sedang menyiapkan toko…");
       }
     };
 
-    // cek pertama kali
-    checkStatus();
+    // cek pertama
+    checkShopReady();
 
     // polling tiap 2 detik
-    intervalId = setInterval(checkStatus, 2000);
+    intervalId = setInterval(checkShopReady, 2000);
 
     return () => clearInterval(intervalId);
   }, [shop]);
