@@ -1,12 +1,7 @@
-/* =========================
-   BASE
-========================= */
 .container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px 16px 40px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, sans-serif;
+  max-width: 960px;
+  margin: auto;
+  padding: 24px;
 }
 
 .header {
@@ -14,216 +9,109 @@
   margin-bottom: 24px;
 }
 
-.header h1 {
-  font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.header p {
-  font-size: 14px;
-  color: #555;
-}
-
-/* =========================
-   LAYOUT
-========================= */
-.splitLayout {
+.layout {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
-@media (min-width: 900px) {
-  .splitLayout {
-    grid-template-columns: 1fr 1fr;
-    align-items: flex-start;
-  }
-}
-
-.formColumn {
-  width: 100%;
-}
-
-.previewColumn {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-/* =========================
-   CARD & FORM
-========================= */
 .card {
-  background: #ffffff;
-  border-radius: 16px;
+  background: white;
+  border-radius: 14px;
   padding: 20px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
 }
 
-.formInput {
+.input {
   width: 100%;
-  padding: 14px 12px;
-  font-size: 15px;
+  padding: 14px;
+  margin-bottom: 12px;
   border-radius: 10px;
   border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.helper {
+  font-size: 12px;
+  color: #666;
+  display: block;
   margin-bottom: 12px;
 }
 
-.formInput:focus {
-  outline: none;
-  border-color: #4f46e5;
-}
-
-.helperText {
-  display: block;
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 14px;
-}
-
-/* =========================
-   SUBDOMAIN INPUT
-========================= */
-.inputWrapper {
+.subdomainWrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.inputWrapper input {
-  flex: 1;
-}
-
-.inputWrapper span {
+.domain {
   font-size: 13px;
   color: #666;
-  white-space: nowrap;
 }
 
-/* =========================
-   THEME SELECTOR
-========================= */
 .themeGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 10px;
   margin: 16px 0;
 }
 
-.themeGrid button {
-  padding: 10px 0;
+.themeBtn {
+  padding: 10px;
   border-radius: 10px;
   border: 1px solid #ddd;
-  background: #fafafa;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.themeGrid button:hover {
-  background: #f1f1f1;
-}
-
-.themeGrid .active {
-  background: #4f46e5;
-  border-color: #4f46e5;
-  color: #fff;
-}
-
-/* =========================
-   ACTION BUTTON
-========================= */
-button {
-  width: 100%;
-  padding: 14px 0;
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  background: #111827;
-  color: #fff;
-  margin-top: 12px;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* =========================
-   PREVIEW MOBILE
-========================= */
-.mobileFrame {
-  width: 100%;
-  max-width: 360px;
-  background: #ffffff;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
-}
-
-.appHeader {
-  padding: 14px;
-  color: #fff;
-}
-
-.appHeader strong {
-  display: block;
-  font-size: 16px;
-}
-
-.appHeader small {
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-.mobileFrame > div:not(.appHeader):not(.cartBar) {
-  padding: 12px 14px;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.mobileFrame > div:hover {
   background: #f9f9f9;
+  cursor: pointer;
 }
 
-/* =========================
-   CART BAR
-========================= */
-.cartBar {
-  position: sticky;
-  bottom: 0;
-  background: #111827;
-  color: #fff;
-  padding: 12px 14px;
-  font-size: 14px;
+.active {
+  background: #008069;
+  color: white;
+  border-color: #008069;
+}
+
+.primaryButton {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: #008069;
+  color: white;
+  border: none;
   font-weight: 600;
-  text-align: center;
+  cursor: pointer;
 }
 
-/* =========================
-   TOAST
-========================= */
+.preview {
+  border-radius: 14px;
+  background: #f7f7f7;
+  padding: 16px;
+}
+
+.previewHeader {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.previewItem {
+  padding: 10px 0;
+  border-bottom: 1px dashed #ddd;
+}
+
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 12px 18px;
-  border-radius: 999px;
-  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: white;
   font-weight: 600;
-  color: #fff;
-  z-index: 9999;
 }
 
-.toast.success {
+.success {
   background: #16a34a;
 }
 
-.toast.error {
+.error {
   background: #dc2626;
 }
-
