@@ -2,20 +2,35 @@ import { NextResponse } from "next/server";
 
 const FIREBASE_BASE =
   "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
+
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
 
 export async function POST(req) {
-   console.log("[1] REGISTER API HIT");
+  console.log("[1] REGISTER API HIT");
+  const startTime = Date.now();
+
   try {
-        const body = await req.json();
-        const { name, wa, email, subdomain, theme } = body;
-        console.log("[2] BODY PARSED", body.email);
-        if (!name || !wa || !email || !subdomain || !theme) {
-          return NextResponse.json(
-            { error: "Data tidak lengkap" },
-            { status: 400 }
-          );
-        }
+    // ==================================================
+    // 0️⃣ VALIDASI ENV
+    // ==================================================
+    if (!APPS_SCRIPT_URL) {
+      throw new Error("APPS_SCRIPT_URL belum diset");
+    }
+
+    // ==================================================
+    // 1️⃣ PARSE & VALIDASI BODY
+    // ==================================================
+    const body = await req.json();
+    const { name, wa, email, subdomain, theme } = body;
+
+    console.log("[2] BODY PARSED", email);
+
+    if (!name || !wa || !email || !subdomain || !theme) {
+      return NextResponse.json(
+        { error: "Data tidak lengkap" },
+        { status: 400 }
+      );
+    }
 
     if (!/^[a-z0-9-]+$/.test(subdomain)) {
       return NextResponse.json(
@@ -32,11 +47,13 @@ export async function POST(req) {
       );
     }
 
+    // ==================================================
+    // 2️⃣ CEK SUBDOMAIN DI FIREBASE
+    // ==================================================
     const shopUrl = `${FIREBASE_BASE}/shops/${subdomain}.json`;
 
-    // ==================================================
-    // 1️⃣ CEK SUBDOMAIN DI FIREBASE
-    // ==================================================
+    console.log("[3] CHECK SUBDOMAIN", subdomain);
+
     const checkRes = await fetch(shopUrl, { cache: "no-store" });
     const exists = await checkRes.json();
 
@@ -48,8 +65,10 @@ export async function POST(req) {
     }
 
     // ==================================================
-    // 2️⃣ APPS SCRIPT → COPY SHEET + SHARE GMAIL
+    // 3️⃣ APPS SCRIPT → CREATE & SHARE SHEET
     // ==================================================
+    console.log("[4] CALL APPS SCRIPT");
+
     const scriptRes = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,7 +79,7 @@ export async function POST(req) {
         theme,
       }),
     });
-    console.log("[6] SHEET COPIED", copied.data.id);
+
     const scriptText = await scriptRes.text();
     let scriptJson;
 
@@ -82,8 +101,10 @@ export async function POST(req) {
       throw new Error("Sheet ID / URL tidak valid");
     }
 
+    console.log("[5] SHEET CREATED", sheetId);
+
     // ==================================================
-    // 3️⃣ SIMPAN DATA TOKO KE FIREBASE
+    // 4️⃣ SIMPAN DATA TOKO KE FIREBASE
     // ==================================================
     const shopData = {
       name,
@@ -97,6 +118,8 @@ export async function POST(req) {
       createdAt: Date.now(),
     };
 
+    console.log("[6] SAVE TO FIREBASE");
+
     const saveRes = await fetch(shopUrl, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -109,11 +132,16 @@ export async function POST(req) {
       throw new Error("Gagal menyimpan data ke Firebase");
     }
 
-    console.log("[REGISTER SHOP SUCCESS]", subdomain);
+    // ==================================================
+    // 5️⃣ RESPONSE SUCCESS
+    // ==================================================
+    console.log(
+      "[7] REGISTER SHOP SUCCESS",
+      subdomain,
+      Date.now() - startTime,
+      "ms"
+    );
 
-    // ==================================================
-    // 4️⃣ RESPONSE SUCCESS
-    // ==================================================
     return NextResponse.json({
       success: true,
       redirect: `https://${subdomain}.tokoinstan.online`,
@@ -128,5 +156,3 @@ export async function POST(req) {
     );
   }
 }
-
-
