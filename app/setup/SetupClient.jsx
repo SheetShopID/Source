@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-const FIREBASE_BASE =
-  "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
-
 export default function SetupClient() {
   const searchParams = useSearchParams();
   const [message, setMessage] = useState("Sedang menyiapkan toko…");
@@ -13,7 +10,7 @@ export default function SetupClient() {
 
   // Ambil subdomain:
   // 1️⃣ dari ?shop=xxx
-  // 2️⃣ fallback dari hostname
+  // 2️⃣ fallback dari hostname (subdomain)
   const shop =
     searchParams.get("shop") ||
     (typeof window !== "undefined"
@@ -23,45 +20,52 @@ export default function SetupClient() {
   useEffect(() => {
     if (!shop) return;
 
-    let interval;
+    let intervalId;
 
     const checkStatus = async () => {
       try {
-        const res = await fetch(
-          `${FIREBASE_BASE}/shops/${shop}.json`,
-          { cache: "no-store" }
-        );
+        const res = await fetch(`/api/get-shop?shop=${shop}`, {
+          cache: "no-store",
+        });
 
         const data = await res.json();
-        if (!data) return;
 
-        if (data.status === "ready") {
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        /**
+         * Karena get-shop FINAL kamu
+         * tidak pakai status "creating / ready",
+         * maka logikanya:
+         * - kalau toko ADA → redirect
+         * - kalau belum → tetap loading
+         */
+
+        if (data.shop) {
           setStatus("ready");
           setMessage("Toko siap! Mengalihkan…");
 
-          clearInterval(interval);
+          clearInterval(intervalId);
+
           setTimeout(() => {
             window.location.href = `https://${shop}.tokoinstan.online`;
           }, 1000);
-        } else if (data.status === "failed") {
-          setStatus("failed");
-          setMessage(
-            "Gagal menyiapkan toko. Silakan coba lagi atau hubungi admin."
-          );
-          clearInterval(interval);
-        } else {
-          setStatus("creating");
-          setMessage("Sedang menyiapkan toko…");
         }
       } catch (err) {
-        console.error("[SETUP PAGE ERROR]", err);
+        console.warn("[SETUP CHECK]", err.message);
+        setStatus("creating");
+        setMessage("Sedang menyiapkan toko…");
       }
     };
 
+    // cek pertama kali
     checkStatus();
-    interval = setInterval(checkStatus, 2000);
 
-    return () => clearInterval(interval);
+    // polling tiap 2 detik
+    intervalId = setInterval(checkStatus, 2000);
+
+    return () => clearInterval(intervalId);
   }, [shop]);
 
   return (
