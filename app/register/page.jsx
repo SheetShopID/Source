@@ -71,10 +71,15 @@ export default function RegisterPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        showToast(json.error || "Gagal membuat toko", "error");
+        if (json.error?.includes("diproses")) {
+          showToast("Website sedang disiapkan, mohon tunggu sebentar 🙏", "error");
+        } else {
+          showToast(json.error || "Gagal membuat toko", "error");
+        }
         setLoading(false);
         return;
       }
+
 
       showToast("Toko & Google Sheet berhasil dibuat!");
       setLoading(false);
@@ -244,3 +249,4 @@ export default function RegisterPage() {
     </>
   );
 }
+
