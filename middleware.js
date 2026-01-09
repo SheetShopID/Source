@@ -69,7 +69,7 @@ function addSecurityHeaders(res) {
     "Content-Security-Policy",
     [
       "default-src 'self';",
-      "connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://firebasestorage.googleapis.com;",
+      "connect-src 'self' https://tokoinstan.online https://docs.google.com https://*.googleusercontent.com https://firebasestorage.googleapis.com;",
       "img-src 'self' data: https://*;",
       "style-src 'self' 'unsafe-inline';",
       "script-src 'self' 'unsafe-inline';",
