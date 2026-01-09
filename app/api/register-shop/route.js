@@ -5,19 +5,17 @@ const FIREBASE_BASE =
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
 
 export async function POST(req) {
+   console.log("[1] REGISTER API HIT");
   try {
-    const body = await req.json();
-    const { name, wa, email, subdomain, theme } = body;
-
-    // ==================================================
-    // 0️⃣ VALIDASI INPUT
-    // ==================================================
-    if (!name || !wa || !email || !subdomain || !theme) {
-      return NextResponse.json(
-        { error: "Data tidak lengkap" },
-        { status: 400 }
-      );
-    }
+        const body = await req.json();
+        const { name, wa, email, subdomain, theme } = body;
+        console.log("[2] BODY PARSED", body.email);
+        if (!name || !wa || !email || !subdomain || !theme) {
+          return NextResponse.json(
+            { error: "Data tidak lengkap" },
+            { status: 400 }
+          );
+        }
 
     if (!/^[a-z0-9-]+$/.test(subdomain)) {
       return NextResponse.json(
@@ -130,3 +128,4 @@ export async function POST(req) {
     );
   }
 }
+
