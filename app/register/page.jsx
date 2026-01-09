@@ -28,19 +28,33 @@ export default function RegisterPage() {
   });
   const [previewCart, setPreviewCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const timeoutRef = useRef(null);
 
   /* =========================
      RESET SAAT PAGE LOAD
   ========================= */
   useEffect(() => {
+    resetAll();
+  }, []);
+
+  const resetAll = () => {
     setForm(INITIAL_FORM);
     setPreviewCart({});
     setCartOpen(false);
-    setShowPreview(false);
+    setLoading(false);
     setToast({ show: false, message: "", type: "success" });
-  }, []);
+  };
+
+  /* =========================
+     TOAST
+  ========================= */
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
 
   /* =========================
      HANDLER
@@ -55,14 +69,6 @@ export default function RegisterPage() {
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, "");
     setForm((p) => ({ ...p, subdomain: val }));
-  };
-
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 3000);
   };
 
   /* =========================
@@ -100,10 +106,8 @@ export default function RegisterPage() {
 
       showToast("Toko & Google Sheet berhasil dibuat!");
 
-      // reset state sebelum redirect (aman & bersih)
-      setForm(INITIAL_FORM);
-      setPreviewCart({});
-      setCartOpen(false);
+      // reset agar kalau user balik → form bersih
+      resetAll();
 
       setTimeout(() => {
         window.location.href = json.redirect;
@@ -136,8 +140,6 @@ export default function RegisterPage() {
     ],
   };
 
-  const previewData = previewByTheme[form.theme];
-
   const themeColors = {
     jastip: "#2f8f4a",
     makanan: "#f97316",
@@ -145,10 +147,11 @@ export default function RegisterPage() {
     beauty: "#ec4899",
   };
 
+  const previewData = previewByTheme[form.theme];
   const themeColor = themeColors[form.theme];
 
   /* =========================
-     CART PREVIEW
+     CART PREVIEW (UI ONLY)
   ========================= */
   const addToCart = (item) => {
     setPreviewCart((prev) => {
@@ -211,9 +214,7 @@ export default function RegisterPage() {
                   onChange={handleInputChange}
                   required
                 />
-                <small>
-                  Google Sheet akan otomatis dibagikan ke email ini
-                </small>
+                <small>Google Sheet akan otomatis dibagikan ke email ini</small>
 
                 <div className={styles.inputWrapper}>
                   <input
@@ -246,13 +247,6 @@ export default function RegisterPage() {
                   {loading
                     ? "Menyiapkan toko & Google Sheet..."
                     : "Buat Toko"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(true)}
-                >
-                  👀 Lihat Preview
                 </button>
               </form>
             </div>
@@ -287,7 +281,12 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {toast.show && <div>{toast.message}</div>}
+      {/* TOAST */}
+      {toast.show && (
+        <div className={`${styles.toast} ${styles[toast.type]}`}>
+          {toast.message}
+        </div>
+      )}
     </>
   );
 }
