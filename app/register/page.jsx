@@ -1,197 +1,280 @@
 "use client";
-
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import styles from "./RegisterPage.module.css";
-import { formatRp } from "@/lib/utils";
-
-const INITIAL_FORM = {
-  name: "",
-  wa: "",
-  email: "",
-  subdomain: "",
-  theme: "jastip",
-};
 
 export default function RegisterPage() {
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  const [previewCart, setPreviewCart] = useState({});
-  const timeoutRef = useRef(null);
+  const [step, setStep] = useState(1);
+  const [state, setState] = useState({
+    purpose: "service",
+    category: "",
+    theme: "jastip",
+    name: "",        // ✅ Kembali ke field lama
+    wa: "",          // ✅ Kembali ke field lama
+    email: "",
+    subdomain: "",   // ✅ Kembali ke field lama
+  });
+  const [loadingText, setLoadingText] = useState("");
+  const [urlStatus, setUrlStatus] = useState("");
 
-  useEffect(() => {
-    setForm(INITIAL_FORM);
-    setPreviewCart({});
-    setToast({ show: false, message: "", type: "success" });
-  }, []);
+  // ---------------------------
+  // HANDLERS
+  // ---------------------------
+  const selectPurpose = (type) => setState({ ...state, purpose: type });
+  const selectCategory = (cat) => setState({ ...state, category: cat });
+  const selectTheme = (theme) => setState({ ...state, theme });
 
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 3000);
+  const updateSlug = (name) => {
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+    setState({ ...state, name, subdomain: slug });
+    checkUrl(slug);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
+  const checkUrl = (slug) => {
+    setUrlStatus("Mengecek...");
+    setTimeout(() => {
+      if (["admin", "test", "root", "main"].includes(slug))
+        setUrlStatus("⚠️ Alamat tidak tersedia");
+      else setUrlStatus("✓ Alamat tersedia");
+    }, 600);
   };
 
-  const handleSubdomainChange = (e) => {
-    const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
-    setForm((p) => ({ ...p, subdomain: val }));
-  };
+  // ---------------------------
+  // API Submit (sinkron dengan loading)
+  // ---------------------------
+  const submitStep5 = async () => {
+    if (!state.name || !state.wa || !state.email)
+      return alert("Mohon lengkapi semua data");
+    if (!state.email.endsWith("@gmail.com"))
+      return alert("Gunakan email Gmail");
+    if (state.subdomain.length < 4)
+      return alert("Subdomain minimal 4 karakter");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!form.email.endsWith("@gmail.com")) {
-      showToast("Gunakan email Gmail", "error");
-      return;
-    }
-
-    if (form.subdomain.length < 4) {
-      showToast("Subdomain minimal 4 karakter", "error");
-      return;
-    }
-
-    setLoading(true);
+    setStep(6);
+    setLoadingText("Menyiapkan data...");
 
     try {
+      setLoadingText(`Membuat Google Sheet... (${state.category || "default"})`);
+      await new Promise((r) => setTimeout(r, 1500));
+
+      setLoadingText("Membuat Website...");
+      await new Promise((r) => setTimeout(r, 2000));
+
       const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        // ✅ Sesuaikan body agar sama seperti versi lama
+        body: JSON.stringify({
+          name: state.name,
+          wa: state.wa,
+          email: state.email,
+          subdomain: state.subdomain,
+          theme: state.theme,
+        }),
       });
 
       const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Gagal membuat toko");
 
-      if (!res.ok) {
-        showToast(json.error || "Gagal membuat toko", "error");
-        setLoading(false);
-        return;
-      }
+      setLoadingText("Hampir selesai...");
+      await new Promise((r) => setTimeout(r, 1500));
 
-      showToast("Toko & Google Sheet berhasil dibuat");
-      setForm(INITIAL_FORM);
-      setPreviewCart({});
-
+      setStep(7);
       setTimeout(() => {
         window.location.href = json.redirect;
       }, 1500);
-    } catch {
-      showToast("Koneksi bermasalah", "error");
-      setLoading(false);
+    } catch (e) {
+      alert("Terjadi kesalahan. Coba lagi.");
+      setStep(5);
     }
   };
 
-  const previewByTheme = {
-    jastip: [
-      { name: "Titip Makan", price: 25000 },
-      { name: "Titip Skincare", price: 150000 },
-    ],
-    makanan: [
-      { name: "Ayam Geprek", price: 22000 },
-      { name: "Es Teh Jumbo", price: 8000 },
-    ],
-  };
+  const nextStep = (s) => setStep(s);
+  const prevStep = (s) => setStep(s);
 
+  // ---------------------------
+  // VIEW
+  // ---------------------------
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>Tokoinstan</h1>
-        <p>Website siap pakai untuk UMKM</p>
-      </header>
-
-      <div className={styles.layout}>
-        <form className={styles.card} onSubmit={handleSubmit}>
-          <input
-            className={styles.input}
-            name="name"
-            placeholder="Nama Toko"
-            value={form.name}
-            onChange={handleInputChange}
-            required
-          />
-
-          <input
-            className={styles.input}
-            name="wa"
-            placeholder="Nomor WhatsApp"
-            value={form.wa}
-            onChange={handleInputChange}
-            required
-          />
-
-          <input
-            className={styles.input}
-            name="email"
-            placeholder="email@gmail.com"
-            value={form.email}
-            onChange={handleInputChange}
-            required
-          />
-
-          <span className={styles.helper}>
-            Google Sheet akan dibagikan ke email ini
-          </span>
-
-          <div className={styles.subdomainWrap}>
-            <input
-              className={styles.input}
-              name="subdomain"
-              placeholder="tokosaya"
-              value={form.subdomain}
-              onChange={handleSubdomainChange}
-              required
+    <div className={styles.app}>
+      {/* Progress bar */}
+      {step >= 2 && step <= 5 && (
+        <div className={styles.progressWrap}>
+          <div className={styles.progressBarBg}>
+            <div
+              className={styles.progressBarFill}
+              style={{ width: `${((step - 1) / 4) * 100}%` }}
             />
-            <span className={styles.domain}>.tokoinstan.online</span>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 1 */}
+      {step === 1 && (
+        <div className={`${styles.stepContainer} ${styles.active}`}>
+          <h1>Website ini akan dipakai untuk apa?</h1>
+          <p>Kami siapkan supaya jualan dan order jadi lebih rapi.</p>
+
+          <div
+            className={`${styles.card} ${
+              state.purpose === "service" ? styles.cardSelected : ""
+            }`}
+            onClick={() => selectPurpose("service")}
+          >
+            <span className={styles.cardBadge}>Paling banyak dipilih 🔥</span>
+            <div className={styles.cardTitle}>
+              Terima Order Jasa via WhatsApp
+            </div>
+            <div className={styles.cardDesc}>
+              Untuk jasa AC, tukang, sedot WC, dan jasa lapangan lainnya
+            </div>
           </div>
 
-          <div className={styles.themeGrid}>
-            {Object.keys(previewByTheme).map((t) => (
-              <button
-                key={t}
-                type="button"
-                className={`${styles.themeBtn} ${
-                  form.theme === t ? styles.active : ""
-                }`}
-                onClick={() => setForm((p) => ({ ...p, theme: t }))}
-              >
-                {t}
-              </button>
-            ))}
+          <div
+            className={styles.card}
+            onClick={() => selectPurpose("product")}
+          >
+            <div className={styles.cardTitle}>Jual Produk / Katalog Online</div>
+            <div className={styles.cardDesc}>
+              Untuk jual barang, menu, atau katalog produk
+            </div>
           </div>
 
           <button
-            type="submit"
-            className={styles.primaryButton}
-            disabled={loading}
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={() => nextStep(5)}
           >
-            {loading ? "Menyiapkan toko..." : "Buat Toko"}
+            Lanjut
           </button>
-        </form>
+        </div>
+      )}
 
-        <div className={styles.preview}>
-          <div className={styles.previewHeader}>
-            {form.name || "Nama Toko"}
+      {/* STEP 5 */}
+      {step === 5 && (
+        <div className={`${styles.stepContainer} ${styles.active}`}>
+          <h2>Sedikit lagi, isi identitas toko kamu</h2>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              Email Google <span className={styles.badgeGmail}>Wajib Gmail</span>
+            </label>
+            <input
+              className={styles.input}
+              type="email"
+              value={state.email}
+              onChange={(e) => setState({ ...state, email: e.target.value })}
+            />
           </div>
 
-          {previewByTheme[form.theme].map((p) => (
-            <div key={p.name} className={styles.previewItem}>
-              {p.name} — {formatRp(p.price)}
-            </div>
-          ))}
-        </div>
-      </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Nama Toko / Usaha</label>
+            <input
+              className={styles.input}
+              type="text"
+              value={state.name}
+              onChange={(e) => updateSlug(e.target.value)}
+            />
+          </div>
 
-      {toast.show && (
-        <div className={`${styles.toast} ${styles[toast.type]}`}>
-          {toast.message}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Nomor WhatsApp</label>
+            <input
+              className={styles.input}
+              type="tel"
+              value={state.wa}
+              onChange={(e) => setState({ ...state, wa: e.target.value })}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Alamat Website</label>
+            <input
+              className={styles.input}
+              value={state.subdomain}
+              readOnly
+            />
+            <div className={styles.validationStatus}>{urlStatus}</div>
+          </div>
+
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={submitStep5}
+          >
+            Buat Website Saya
+          </button>
+        </div>
+      )}
+
+      {/* STEP 6 Loading */}
+      {step === 6 && (
+        <div className={`${styles.overlayFull} ${styles.overlayShow}`}>
+          <div className={styles.spinner}></div>
+          <h2>{loadingText}</h2>
+        </div>
+      )}
+
+      {/* STEP 7 */}
+      {step === 7 && (
+        <div className={`${styles.stepContainer} ${styles.active}`} style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "64px", marginBottom: "10px" }}>🎉</div>
+          <h1 style={{ color: "#008069" }}>Website kamu sudah siap!</h1>
+          <p>Website sudah aktif dan terhubung dengan Google Sheet.</p>
+
+          <div
+            className={styles.card}
+            onClick={() => nextStep(8)}
+          >
+            <div className={styles.cardTitle}>📱 Lihat Preview Website</div>
+            <div className={styles.cardDesc}>
+              Lihat tampilan website kamu secara langsung
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 8 Preview */}
+      {step === 8 && (
+        <div className={`${styles.stepContainer} ${styles.active}`} style={{ padding: 0, background: "#333", color: "white" }}>
+          <div style={{ padding: 16, textAlign: "center" }}>
+            <h2 style={{ margin: 0, fontSize: 16 }}>Live Preview</h2>
+            <span style={{ fontSize: 12, opacity: 0.7 }}>
+              {state.subdomain}.tokoinstan.online
+            </span>
+          </div>
+
+          <div className={styles.previewFrame}>
+            <div className={styles.previewHeader}>
+              <h3 style={{ margin: 0, fontSize: 18 }}>{state.name}</h3>
+              <span style={{ fontSize: 12, opacity: 0.9 }}>
+                Solusi Cepat & Terpercaya
+              </span>
+            </div>
+
+            <div className={styles.previewBody}>
+              <div className={styles.previewItem}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Cuci AC Split 0.5 - 1 PK</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>Pembersihan menyeluruh</div>
+                </div>
+                <div style={{ fontWeight: 700, color: "#008069" }}>Rp 50rb</div>
+              </div>
+
+              <div className={styles.previewItem}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Bongkar Pasang AC</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>Gratis pipa 3 meter</div>
+                </div>
+                <div style={{ fontWeight: 700, color: "#008069" }}>Rp 150rb</div>
+              </div>
+            </div>
+
+            <div className={styles.fabWhatsapp}>💬</div>
+          </div>
         </div>
       )}
     </div>
   );
 }
-/*tes*/
