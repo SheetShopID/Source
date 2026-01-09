@@ -4,9 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./RegisterPage.module.css";
 import { formatRp } from "@/lib/utils";
 
-/* =========================
-   INITIAL STATE
-========================= */
 const INITIAL_FORM = {
   name: "",
   wa: "",
@@ -16,38 +13,18 @@ const INITIAL_FORM = {
 };
 
 export default function RegisterPage() {
-  /* =========================
-     STATE
-  ========================= */
   const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [previewCart, setPreviewCart] = useState({});
-  const [cartOpen, setCartOpen] = useState(false);
   const timeoutRef = useRef(null);
 
-  /* =========================
-     RESET SAAT PAGE LOAD
-  ========================= */
   useEffect(() => {
-    resetAll();
-  }, []);
-
-  const resetAll = () => {
     setForm(INITIAL_FORM);
     setPreviewCart({});
-    setCartOpen(false);
-    setLoading(false);
     setToast({ show: false, message: "", type: "success" });
-  };
+  }, []);
 
-  /* =========================
-     TOAST
-  ========================= */
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     clearTimeout(timeoutRef.current);
@@ -56,29 +33,21 @@ export default function RegisterPage() {
     }, 3000);
   };
 
-  /* =========================
-     HANDLER
-  ========================= */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
   };
 
   const handleSubdomainChange = (e) => {
-    const val = e.target.value
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "");
+    const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
     setForm((p) => ({ ...p, subdomain: val }));
   };
 
-  /* =========================
-     SUBMIT
-  ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.email.endsWith("@gmail.com")) {
-      showToast("Gunakan email Gmail untuk Google Sheet", "error");
+      showToast("Gunakan email Gmail", "error");
       return;
     }
 
@@ -104,193 +73,124 @@ export default function RegisterPage() {
         return;
       }
 
-      showToast("Toko & Google Sheet berhasil dibuat!");
-
-      // reset agar kalau user balik → form bersih
-      resetAll();
+      showToast("Toko & Google Sheet berhasil dibuat");
+      setForm(INITIAL_FORM);
+      setPreviewCart({});
 
       setTimeout(() => {
         window.location.href = json.redirect;
       }, 1500);
     } catch {
-      showToast("Terjadi kesalahan koneksi", "error");
+      showToast("Koneksi bermasalah", "error");
       setLoading(false);
     }
   };
 
-  /* =========================
-     PREVIEW DATA
-  ========================= */
   const previewByTheme = {
     jastip: [
-      { name: "Titip Makan", price: 25000, fee: 5000 },
-      { name: "Titip Skincare", price: 150000, fee: 8000 },
+      { name: "Titip Makan", price: 25000 },
+      { name: "Titip Skincare", price: 150000 },
     ],
     makanan: [
-      { name: "Ayam Geprek", price: 22000, fee: 3000 },
-      { name: "Es Teh Jumbo", price: 8000, fee: 2000 },
-    ],
-    laundry: [
-      { name: "Cuci Kiloan", price: 7000, fee: 0 },
-      { name: "Setrika Express", price: 12000, fee: 0 },
-    ],
-    beauty: [
-      { name: "Facial", price: 120000, fee: 0 },
-      { name: "Serum Wajah", price: 98000, fee: 5000 },
+      { name: "Ayam Geprek", price: 22000 },
+      { name: "Es Teh Jumbo", price: 8000 },
     ],
   };
 
-  const themeColors = {
-    jastip: "#2f8f4a",
-    makanan: "#f97316",
-    laundry: "#3b82f6",
-    beauty: "#ec4899",
-  };
-
-  const previewData = previewByTheme[form.theme];
-  const themeColor = themeColors[form.theme];
-
-  /* =========================
-     CART PREVIEW (UI ONLY)
-  ========================= */
-  const addToCart = (item) => {
-    setPreviewCart((prev) => {
-      const cur =
-        prev[item.name] || { qty: 0, price: item.price, fee: item.fee };
-      return {
-        ...prev,
-        [item.name]: { ...cur, qty: cur.qty + 1 },
-      };
-    });
-    setCartOpen(true);
-  };
-
-  const cartItems = Object.entries(previewCart);
-  const totalQty = cartItems.reduce((a, [, v]) => a + v.qty, 0);
-  const totalPrice = cartItems.reduce(
-    (a, [, v]) => a + (v.price + v.fee) * v.qty,
-    0
-  );
-
-  /* =========================
-     RENDER
-  ========================= */
   return (
-    <>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>Tokoinstan</h1>
-          <p>Terima order jasa & produk langsung dari HP pelanggan.</p>
-        </header>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1>Tokoinstan</h1>
+        <p>Website siap pakai untuk UMKM</p>
+      </header>
 
-        <div className={styles.splitLayout}>
-          {/* FORM */}
-          <section className={styles.formColumn}>
-            <div className={styles.card}>
-              <form onSubmit={handleSubmit}>
-                <input
-                  className={styles.formInput}
-                  name="name"
-                  placeholder="Nama Toko"
-                  value={form.name}
-                  onChange={handleInputChange}
-                  required
-                />
+      <div className={styles.layout}>
+        <form className={styles.card} onSubmit={handleSubmit}>
+          <input
+            className={styles.input}
+            name="name"
+            placeholder="Nama Toko"
+            value={form.name}
+            onChange={handleInputChange}
+            required
+          />
 
-                <input
-                  className={styles.formInput}
-                  name="wa"
-                  placeholder="Nomor WhatsApp"
-                  value={form.wa}
-                  onChange={handleInputChange}
-                  required
-                />
+          <input
+            className={styles.input}
+            name="wa"
+            placeholder="Nomor WhatsApp"
+            value={form.wa}
+            onChange={handleInputChange}
+            required
+          />
 
-                <input
-                  className={styles.formInput}
-                  name="email"
-                  placeholder="email@gmail.com"
-                  value={form.email}
-                  onChange={handleInputChange}
-                  required
-                />
-                <small className={styles.helperText}>
-                 Google Sheet akan otomatis dibagikan ke email ini
-               </small>
+          <input
+            className={styles.input}
+            name="email"
+            placeholder="email@gmail.com"
+            value={form.email}
+            onChange={handleInputChange}
+            required
+          />
 
+          <span className={styles.helper}>
+            Google Sheet akan dibagikan ke email ini
+          </span>
 
-                <div className={styles.inputWrapper}>
-                  <input
-                    className={styles.formInput}
-                    name="subdomain"
-                    placeholder="tokosaya"
-                    value={form.subdomain}
-                    onChange={handleSubdomainChange}
-                    required
-                  />
-                  <span>.tokoinstan.online</span>
-                </div>
+          <div className={styles.subdomainWrap}>
+            <input
+              className={styles.input}
+              name="subdomain"
+              placeholder="tokosaya"
+              value={form.subdomain}
+              onChange={handleSubdomainChange}
+              required
+            />
+            <span className={styles.domain}>.tokoinstan.online</span>
+          </div>
 
-                <div className={styles.themeGrid}>
-                  {Object.keys(previewByTheme).map((t) => (
-                    <button
-                      type="button"
-                      key={t}
-                      className={form.theme === t ? styles.active : ""}
-                      onClick={() =>
-                        setForm((p) => ({ ...p, theme: t }))
-                      }
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-
-                <button disabled={loading}>
-                  {loading
-                    ? "Menyiapkan toko & Google Sheet..."
-                    : "Buat Toko"}
-                </button>
-              </form>
-            </div>
-          </section>
-
-          {/* PREVIEW */}
-          <section className={styles.previewColumn}>
-            <div className={styles.mobileFrame}>
-              <div
-                className={styles.appHeader}
-                style={{ background: themeColor }}
+          <div className={styles.themeGrid}>
+            {Object.keys(previewByTheme).map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`${styles.themeBtn} ${
+                  form.theme === t ? styles.active : ""
+                }`}
+                onClick={() => setForm((p) => ({ ...p, theme: t }))}
               >
-                <strong>{form.name || "Nama Toko"}</strong>
-                <small>
-                  {form.subdomain || "tokosaya"}.tokoinstan.online
-                </small>
-              </div>
+                {t}
+              </button>
+            ))}
+          </div>
 
-              {previewData.map((p) => (
-                <div key={p.name} onClick={() => addToCart(p)}>
-                  {p.name} — {formatRp(p.price)}
-                </div>
-              ))}
+          <button
+            type="submit"
+            className={styles.primaryButton}
+            disabled={loading}
+          >
+            {loading ? "Menyiapkan toko..." : "Buat Toko"}
+          </button>
+        </form>
 
-              {totalQty > 0 && (
-                <div className={styles.cartBar}>
-                  🛒 {totalQty} item • {formatRp(totalPrice)}
-                </div>
-              )}
+        <div className={styles.preview}>
+          <div className={styles.previewHeader}>
+            {form.name || "Nama Toko"}
+          </div>
+
+          {previewByTheme[form.theme].map((p) => (
+            <div key={p.name} className={styles.previewItem}>
+              {p.name} — {formatRp(p.price)}
             </div>
-          </section>
+          ))}
         </div>
       </div>
 
-      {/* TOAST */}
       {toast.show && (
         <div className={`${styles.toast} ${styles[toast.type]}`}>
           {toast.message}
         </div>
       )}
-    </>
+    </div>
   );
 }
-
