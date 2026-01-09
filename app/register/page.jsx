@@ -214,7 +214,10 @@ export default function RegisterPage() {
                   onChange={handleInputChange}
                   required
                 />
-                <small>Google Sheet akan otomatis dibagikan ke email ini</small>
+                <small className={styles.helperText}>
+                 Google Sheet akan otomatis dibagikan ke email ini
+               </small>
+
 
                 <div className={styles.inputWrapper}>
                   <input
@@ -290,3 +293,4 @@ export default function RegisterPage() {
     </>
   );
 }
+
