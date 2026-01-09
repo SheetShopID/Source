@@ -60,7 +60,7 @@ export async function POST(req) {
         theme,
       }),
     });
-
+    console.log("[6] SHEET COPIED", copied.data.id);
     const scriptText = await scriptRes.text();
     let scriptJson;
 
@@ -128,4 +128,5 @@ export async function POST(req) {
     );
   }
 }
+
 
