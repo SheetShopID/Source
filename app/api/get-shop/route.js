@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseCSV, convertSheetToCSVUrl } from "@/lib/csv";
 
-// 🔥 WAJIB: paksa route ini DINAMIS
+// 🔥 WAJIB: paksa API route ini selalu dinamis
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -9,8 +9,8 @@ const FIREBASE_BASE =
   "https://tokoinstan-3e6d5-default-rtdb.firebaseio.com";
 
 // ==================================================
-// IN-MEMORY CACHE (BEST EFFORT, NON-CRITICAL)
-// ⚠️ Vercel serverless bisa reset kapan saja
+// In-memory cache (best effort, 1 menit)
+// ⚠️ Catatan: di Vercel serverless, cache bisa reset
 // ==================================================
 const cache = {};
 const CACHE_TTL = 1000 * 60; // 1 menit
@@ -18,7 +18,7 @@ const CACHE_TTL = 1000 * 60; // 1 menit
 export async function GET(req) {
   try {
     // ==================================================
-    // 0️⃣ AMBIL PARAMETER
+    // 0️⃣ Ambil parameter
     // ==================================================
     const { searchParams } = new URL(req.url);
     const shop = searchParams.get("shop");
@@ -33,7 +33,7 @@ export async function GET(req) {
     const now = Date.now();
 
     // ==================================================
-    // 1️⃣ CACHE CHECK (SAFE MODE)
+    // 1️⃣ Cache check (aman & opsional)
     // ==================================================
     const cached = cache[shop];
     if (cached && now - cached.timestamp < CACHE_TTL) {
@@ -41,7 +41,7 @@ export async function GET(req) {
     }
 
     // ==================================================
-    // 2️⃣ AMBIL DATA TOKO DARI FIREBASE
+    // 2️⃣ Ambil data toko dari Firebase
     // ==================================================
     const firebaseUrl = `${FIREBASE_BASE}/shops/${encodeURIComponent(
       shop
@@ -53,7 +53,7 @@ export async function GET(req) {
     });
 
     if (!fbRes.ok) {
-      throw new Error("Gagal mengambil data toko");
+      throw new Error("Gagal mengambil data toko dari Firebase");
     }
 
     const shopData = await fbRes.json();
@@ -66,12 +66,13 @@ export async function GET(req) {
     }
 
     // ==================================================
-    // 3️⃣ AMBIL PRODUK DARI GOOGLE SHEET
+    // 3️⃣ Ambil produk dari Google Sheet (CSV)
     // ==================================================
     let products = [];
 
     if (shopData.sheetId || shopData.sheetUrl) {
       try {
+        // Support sheetId (baru) & sheetUrl (legacy)
         const csvUrl = shopData.sheetId
           ? `https://docs.google.com/spreadsheets/d/${shopData.sheetId}/export?format=csv`
           : convertSheetToCSVUrl(shopData.sheetUrl);
@@ -79,7 +80,7 @@ export async function GET(req) {
         const csvRes = await fetch(csvUrl, { cache: "no-store" });
 
         if (!csvRes.ok) {
-          throw new Error("CSV tidak dapat diakses");
+          throw new Error("CSV tidak bisa diakses");
         }
 
         const csvText = await csvRes.text();
@@ -99,9 +100,9 @@ export async function GET(req) {
             shopName: row.shop || shopData.name,
           }));
       } catch (sheetErr) {
-        // ⚠️ Sheet error TIDAK BOLEH bikin toko mati
+        // Sheet error TIDAK BOLEH bikin toko gagal
         console.warn(
-          "[GET-SHOP] Sheet error, lanjut tanpa produk:",
+          "[GET-SHOP] Gagal ambil produk, lanjut tanpa produk:",
           sheetErr.message
         );
         products = [];
@@ -109,7 +110,7 @@ export async function GET(req) {
     }
 
     // ==================================================
-    // 4️⃣ FINAL RESPONSE
+    // 4️⃣ Final response (data publik saja)
     // ==================================================
     const responseData = {
       shop: {
@@ -122,7 +123,7 @@ export async function GET(req) {
     };
 
     // ==================================================
-    // 5️⃣ SIMPAN CACHE (BEST EFFORT)
+    // 5️⃣ Simpan cache (best effort)
     // ==================================================
     cache[shop] = {
       timestamp: now,
