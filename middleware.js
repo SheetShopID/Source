@@ -2,85 +2,110 @@
 import { NextResponse } from "next/server";
 
 /**
- * Middleware untuk menangani multi-subdomain pada domain tokoinstan.online
- * dan menambahkan header keamanan.
+ * Middleware Tokoinstan
+ * - Multi-subdomain handling
+ * - Internal tools protection
+ * - Security headers
  */
 export function middleware(req) {
   const host = req.headers.get("host")?.toLowerCase() || "";
   const url = new URL(req.url);
+  const pathname = url.pathname;
 
-  // 🧩 Deteksi environment (localhost, vercel, production)
-  const isLocalhost = host.includes("localhost");
-  const isVercel = host.includes("vercel.app");
-  const isProduction = host.includes("tokoinstan.online");
-
-  // 🧠 Ambil subdomain (contoh: jastip dari jastip.tokoinstan.online)
-  const parts = host.split(".");
-  const sub = isLocalhost
-    ? parts[0] === "localhost" ? null : parts[0]
-    : parts.length > 2
-    ? parts[0]
-    : parts[0] === "www"
-    ? null
-    : parts[0];
-
-  // 🔐 INTERNAL ROUTE GUARD (Log Inspector, dll)
-  if (url.pathname.startsWith("/_internal")) {
+  // ==================================================
+  // 1️⃣ INTERNAL ROUTE GUARD (Log Inspector, dll)
+  // ==================================================
+  if (pathname.startsWith("/internal")) {
     const token =
       req.cookies.get("internal_auth")?.value ||
       req.headers.get("x-internal-key");
-  
+
+    if (!process.env.INTERNAL_DASHBOARD_KEY) {
+      console.error("[MIDDLEWARE] INTERNAL_DASHBOARD_KEY belum diset");
+      return NextResponse.rewrite(new URL("/404", req.url));
+    }
+
     if (token !== process.env.INTERNAL_DASHBOARD_KEY) {
       return NextResponse.rewrite(new URL("/404", req.url));
     }
-  
+
     const res = NextResponse.next();
     addSecurityHeaders(res);
     return res;
   }
 
-  
-  // 🌐 Jika domain utama → arahkan ke halaman /register
-  if (!sub || sub === "tokoinstan" || sub === "www" || sub === "api") {
+  // ==================================================
+  // 2️⃣ ENV DETECTION
+  // ==================================================
+  const isLocalhost = host.includes("localhost");
+  const isVercel = host.includes("vercel.app");
+  const isProduction = host.endsWith("tokoinstan.online");
+
+  // ==================================================
+  // 3️⃣ SUBDOMAIN PARSING
+  // ==================================================
+  const parts = host.split(".");
+  let subdomain = null;
+
+  if (isLocalhost) {
+    subdomain = parts[0] !== "localhost" ? parts[0] : null;
+  } else if (parts.length > 2) {
+    subdomain = parts[0];
+  }
+
+  // ==================================================
+  // 4️⃣ ROOT DOMAIN → /register
+  // ==================================================
+  if (!subdomain || ["www", "tokoinstan", "api"].includes(subdomain)) {
     const res = NextResponse.rewrite(new URL("/register", req.url));
     addSecurityHeaders(res);
     return res;
   }
 
-  // 🚧 Filter: hanya domain terdaftar yang boleh di-handle
+  // ==================================================
+  // 5️⃣ DOMAIN SAFETY CHECK
+  // ==================================================
   if (!isLocalhost && !isProduction && !isVercel) {
-    const res = NextResponse.json({ error: "Domain tidak dikenal." }, { status: 403 });
+    const res = NextResponse.json(
+      { error: "Domain tidak dikenal" },
+      { status: 403 }
+    );
     addSecurityHeaders(res);
     return res;
   }
 
-  // 🏷️ Tambahkan header agar bisa digunakan oleh app/page.jsx
+  // ==================================================
+  // 6️⃣ PASS TO SHOP APP
+  // ==================================================
   const res = NextResponse.next();
-  res.headers.set("x-shop-id", sub);
+  res.headers.set("x-shop-id", subdomain);
   res.headers.set("x-shop-origin", host);
 
-  // 🔒 Tambahkan security headers
   addSecurityHeaders(res);
 
-  // 🪵 Logging untuk development
   if (process.env.NODE_ENV === "development") {
-    console.log("[MIDDLEWARE]", { host, sub });
+    console.log("[MIDDLEWARE]", { host, subdomain, pathname });
   }
 
   return res;
 }
 
 /**
- * 🔒 Tambahkan security headers untuk mencegah exploit umum
+ * 🔒 Security Headers
  */
 function addSecurityHeaders(res) {
   res.headers.set("X-Frame-Options", "DENY");
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  res.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  res.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+  res.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
+  );
 
-  // ✅ Izinkan domain eksternal yang dibutuhkan (Google Sheet + Firebase + CDN Google)
   res.headers.set(
     "Content-Security-Policy",
     [
@@ -91,13 +116,10 @@ function addSecurityHeaders(res) {
       "script-src 'self' 'unsafe-inline';",
     ].join(" ")
   );
-
-  return res;
 }
 
-
 /**
- * Jalankan middleware untuk semua route kecuali API dan aset statis.
+ * Apply middleware to all pages except API & static
  */
 export const config = {
   matcher: [
