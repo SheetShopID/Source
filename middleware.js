@@ -3,27 +3,40 @@ import { NextResponse } from "next/server";
 
 /**
  * Middleware Tokoinstan
- * - Multi-subdomain handling
- * - Internal tools protection
+ * - Multi subdomain
+ * - Internal route guard
  * - Security headers
  */
 export function middleware(req) {
   const host = req.headers.get("host")?.toLowerCase() || "";
   const url = new URL(req.url);
-  const pathname = url.pathname;
 
-  // ==================================================
-  // 1️⃣ INTERNAL ROUTE GUARD (Log Inspector, dll)
-  // ==================================================
-  if (pathname.startsWith("/internal")) {
+  const isLocalhost = host.includes("localhost");
+  const isVercel = host.includes("vercel.app");
+  const isProduction = host.includes("tokoinstan.online");
+
+  // =============================
+  // SUBDOMAIN PARSING (SAFE)
+  // =============================
+  const parts = host.split(".");
+  const sub = isLocalhost
+    ? parts[0] === "localhost"
+      ? null
+      : parts[0]
+    : parts.length > 2
+    ? parts[0]
+    : parts[0] === "www"
+    ? null
+    : parts[0];
+
+  // =============================
+  // INTERNAL ROUTE GUARD
+  // =============================
+  if (url.pathname.startsWith("/_internal")) {
     const token =
       req.cookies.get("internal_auth")?.value ||
-      req.headers.get("x-internal-key");
-
-    if (!process.env.INTERNAL_DASHBOARD_KEY) {
-      console.error("[MIDDLEWARE] INTERNAL_DASHBOARD_KEY belum diset");
-      return NextResponse.rewrite(new URL("/404", req.url));
-    }
+      req.headers.get("x-internal-key") ||
+      url.searchParams.get("key");
 
     if (token !== process.env.INTERNAL_DASHBOARD_KEY) {
       return NextResponse.rewrite(new URL("/404", req.url));
@@ -34,69 +47,58 @@ export function middleware(req) {
     return res;
   }
 
-  // ==================================================
-  // 2️⃣ ENV DETECTION
-  // ==================================================
-  const isLocalhost = host.includes("localhost");
-  const isVercel = host.includes("vercel.app");
-  const isProduction = host.endsWith("tokoinstan.online");
-
-  // ==================================================
-  // 3️⃣ SUBDOMAIN PARSING
-  // ==================================================
-  const parts = host.split(".");
-  let subdomain = null;
-
-  if (isLocalhost) {
-    subdomain = parts[0] !== "localhost" ? parts[0] : null;
-  } else if (parts.length > 2) {
-    subdomain = parts[0];
-  }
-
-  // ==================================================
-  // 4️⃣ ROOT DOMAIN → /register
-  // ==================================================
-  if (!subdomain || ["www", "tokoinstan", "api"].includes(subdomain)) {
+  // =============================
+  // ROOT DOMAIN → REGISTER
+  // =============================
+  if (!sub || sub === "tokoinstan" || sub === "www" || sub === "api") {
     const res = NextResponse.rewrite(new URL("/register", req.url));
     addSecurityHeaders(res);
     return res;
   }
 
-  // ==================================================
-  // 5️⃣ DOMAIN SAFETY CHECK
-  // ==================================================
+  // =============================
+  // DOMAIN FILTER
+  // =============================
   if (!isLocalhost && !isProduction && !isVercel) {
     const res = NextResponse.json(
-      { error: "Domain tidak dikenal" },
+      { error: "Domain tidak dikenal." },
       { status: 403 }
     );
     addSecurityHeaders(res);
     return res;
   }
 
-  // ==================================================
-  // 6️⃣ PASS TO SHOP APP
-  // ==================================================
+  // =============================
+  // PASS TO APP
+  // =============================
   const res = NextResponse.next();
-  res.headers.set("x-shop-id", subdomain);
+  res.headers.set("x-shop-id", sub);
   res.headers.set("x-shop-origin", host);
 
   addSecurityHeaders(res);
 
+  // Dev visibility
   if (process.env.NODE_ENV === "development") {
-    console.log("[MIDDLEWARE]", { host, subdomain, pathname });
+    console.log("[MIDDLEWARE]", {
+      host,
+      path: url.pathname,
+      sub,
+    });
   }
 
   return res;
 }
 
 /**
- * 🔒 Security Headers
+ * Security headers
  */
 function addSecurityHeaders(res) {
   res.headers.set("X-Frame-Options", "DENY");
   res.headers.set("X-Content-Type-Options", "nosniff");
-  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.headers.set(
+    "Referrer-Policy",
+    "strict-origin-when-cross-origin"
+  );
   res.headers.set(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()"
@@ -117,12 +119,8 @@ function addSecurityHeaders(res) {
     ].join(" ")
   );
 }
-
-/**
- * Apply middleware to all pages except API & static
- */
 export const config = {
   matcher: [
-    "/((?!api/internal|api|_next/static|_next/image|favicon.ico|robots.txt).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt).*)",
   ],
 };
