@@ -6,16 +6,14 @@ export function middleware(req) {
   const url = new URL(req.url);
 
   // =============================
-  // 🔐 INTERNAL LOGIN GUARD
+  // 🔐 INTERNAL AUTH (LOGIN-BASED)
   // =============================
   if (url.pathname.startsWith("/_internal")) {
-    // izinkan halaman login
     if (url.pathname.startsWith("/_internal/login")) {
       return NextResponse.next();
     }
 
     const session = req.cookies.get("admin_session")?.value;
-
     if (session !== process.env.ADMIN_SESSION_SECRET) {
       return NextResponse.redirect(new URL("/_internal/login", req.url));
     }
@@ -44,7 +42,7 @@ export function middleware(req) {
   }
 
   if (!isLocalhost && !isProduction && !isVercel) {
-    return NextResponse.json({ error: "Domain tidak dikenal." }, { status: 403 });
+    return NextResponse.json({ error: "Domain tidak dikenal" }, { status: 403 });
   }
 
   const res = NextResponse.next();
@@ -53,7 +51,5 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
