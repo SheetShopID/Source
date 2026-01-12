@@ -2,14 +2,14 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
-  const host = req.headers.get("host")?.toLowerCase() || "";
   const url = new URL(req.url);
+  const host = req.headers.get("host")?.toLowerCase() || "";
 
   // =============================
-  // 🔐 INTERNAL AUTH (LOGIN-BASED)
+  // 🔐 INTERNAL AUTH (LOGIN BASED)
   // =============================
   if (url.pathname.startsWith("/_internal")) {
-    if (url.pathname.startsWith("/_internal/login")) {
+    if (url.pathname === "/_internal/login") {
       return NextResponse.next();
     }
 
@@ -22,7 +22,7 @@ export function middleware(req) {
   }
 
   // =============================
-  // 🌐 SUBDOMAIN HANDLER (AS-IS)
+  // 🌐 SUBDOMAIN HANDLER (AS IS)
   // =============================
   const isLocalhost = host.includes("localhost");
   const isVercel = host.includes("vercel.app");
