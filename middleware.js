@@ -123,6 +123,6 @@ function addSecurityHeaders(res) {
  */
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt).*)",
+    "/((?!api/internal|api|_next/static|_next/image|favicon.ico|robots.txt).*)",
   ],
 };
