@@ -24,6 +24,22 @@ export function middleware(req) {
     ? null
     : parts[0];
 
+  // 🔐 INTERNAL ROUTE GUARD (Log Inspector, dll)
+  if (url.pathname.startsWith("/_internal")) {
+    const token =
+      req.cookies.get("internal_auth")?.value ||
+      req.headers.get("x-internal-key");
+  
+    if (token !== process.env.INTERNAL_DASHBOARD_KEY) {
+      return NextResponse.rewrite(new URL("/404", req.url));
+    }
+  
+    const res = NextResponse.next();
+    addSecurityHeaders(res);
+    return res;
+  }
+
+  
   // 🌐 Jika domain utama → arahkan ke halaman /register
   if (!sub || sub === "tokoinstan" || sub === "www" || sub === "api") {
     const res = NextResponse.rewrite(new URL("/register", req.url));
