@@ -1,5 +1,5 @@
 "use client";
-
+/*tes*/
 import { useState } from "react";
 import ThemePreview from "@/components/ThemePreview";
 
@@ -116,3 +116,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
