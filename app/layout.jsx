@@ -8,7 +8,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        {children} {/* semua page akan dirender di sini */}
+        {children} {/* semua page akan dirender di sini tes */}
       </body>
     </html>
   );
