@@ -1,16 +1,17 @@
-import ShopPage from "@/components/ShopPage";
+import { headers } from "next/headers";
+import ShopPage from "../components/ShopPage";
 
-export default async function Page() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/get-shop`,
-    { cache: "no-store" }
-  );
+export default function Home() {
+  const shop = headers().get("x-shop-id");
 
-  if (!res.ok) {
-    return <div>Toko tidak ditemukan</div>;
+  if (!shop) {
+    return (
+      <div>
+        <h1>Selamat datang di TokoInstan</h1>
+        <p>Gunakan subdomain seperti jastip.tokoinstan.online</p>
+      </div>
+    );
   }
 
-  const { shop, products } = await res.json();
-
-  return <ShopPage shop={shop} products={products} />;
+  return <ShopPage shop={shop} />;
 }
