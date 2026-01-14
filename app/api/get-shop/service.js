@@ -10,7 +10,7 @@ export async function getShopService(shop) {
   }
 
   // =========================
-  // CACHE (60s)
+  // CACHE (60s) .
   // =========================
   const cached = getCache(`shop:${shop}`);
   if (cached) return cached;
@@ -82,3 +82,4 @@ export async function getShopService(shop) {
   setCache(`shop:${shop}`, response);
   return response;
 }
+
