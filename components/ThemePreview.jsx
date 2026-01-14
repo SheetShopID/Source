@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-// 🔒 HARUS SAMA PERSIS DENGAN ShopPage
+// ✅ WHITELIST THEME (single source of truth)
 const THEME_MAP = {
   food: () => import("./themes/food"),
   jasa: () => import("./themes/jasa"),
   katalog: () => import("./themes/katalog"),
 };
 
-export default function ThemePreview({ theme, shop, products = [] }) {
+export default function ThemePreview({ theme, shop = {}, products = [] }) {
   const [ThemeComponent, setThemeComponent] = useState(null);
 
   useEffect(() => {
@@ -21,6 +21,7 @@ export default function ThemePreview({ theme, shop, products = [] }) {
         const loader = THEME_MAP[themeKey];
 
         if (!loader) {
+          console.warn(`[THEME] Invalid theme "${themeKey}", fallback used`);
           const fallback = await import("./themes/_fallback");
           if (mounted) setThemeComponent(() => fallback.default);
           return;
@@ -28,25 +29,23 @@ export default function ThemePreview({ theme, shop, products = [] }) {
 
         const mod = await loader();
         if (mounted) setThemeComponent(() => mod.default);
-      } catch {
+      } catch (err) {
+        console.error("[THEME LOAD ERROR]", err);
         const fallback = await import("./themes/_fallback");
         if (mounted) setThemeComponent(() => fallback.default);
       }
     }
 
     loadTheme();
+
     return () => {
       mounted = false;
     };
   }, [theme]);
 
   if (!ThemeComponent) {
-    return <div style={{ padding: 20 }}>Loading preview...</div>;
+    return <div style={{ padding: 20 }}>Loading theme...</div>;
   }
 
-  return (
-    <div style={{ transform: "scale(0.9)", pointerEvents: "none" }}>
-      <ThemeComponent shop={shop} products={products} />
-    </div>
-  );
+  return <ThemeComponent shop={shop} products={products} />;
 }
