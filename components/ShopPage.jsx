@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import ErrorBoundary from "./ErrorBoundary";
 
-// ✅ WHITELIST THEME (single source of truth)
+// ✅ WHITELIST THEME (single source of truth) tes
 const THEME_MAP = {
   food: () => import("./themes/food"),
   jasa: () => import("./themes/jasa"),
@@ -55,3 +55,4 @@ export default function ShopPage({ shop, products }) {
     </ErrorBoundary>
   );
 }
+
