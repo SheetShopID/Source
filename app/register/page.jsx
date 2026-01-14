@@ -1,5 +1,5 @@
 "use client";
-/*tes*/
+
 import { useState } from "react";
 import ThemePreview from "@/components/ThemePreview";
 
@@ -30,7 +30,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/register", {
+      const res = await fetch("/api/register-shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -38,11 +38,12 @@ export default function RegisterPage() {
 
       const json = await res.json();
 
-      if (!res.ok) {
+      if (!json.success) {
         throw new Error(json.error || "Registrasi gagal");
       }
 
-      window.location.href = json.redirect;
+      // redirect ke subdomain toko
+      window.location.href = `https://${json.shop.subdomain}.tokoinstan.online`;
     } catch (err) {
       setError(err.message);
     } finally {
@@ -108,7 +109,6 @@ export default function RegisterPage() {
         {loading ? "Membuat toko..." : "Daftar"}
       </button>
 
-      {/* PREVIEW */}
       <div style={{ marginTop: 32 }}>
         <h3>Preview Tema</h3>
         <ThemePreview theme={form.theme} />
@@ -116,4 +116,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
