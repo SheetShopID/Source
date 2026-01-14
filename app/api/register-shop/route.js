@@ -1,33 +1,23 @@
 import { NextResponse } from "next/server";
 import { registerShop } from "./service";
-import { rateLimit } from "@/lib/rate-limit";
-import { AppError } from "@/lib/errors";
 import { log } from "@/lib/logger";
+import { AppError } from "@/lib/errors";
 
 export async function POST(req) {
   const requestId = crypto.randomUUID();
-  const ip =
-    req.headers.get("x-forwarded-for") ||
-    "unknown";
 
   try {
-    if (!rateLimit(ip)) {
-      throw new AppError(
-        "Terlalu banyak request",
-        429
-      );
-    }
-
     const body = await req.json();
 
-    const result = await registerShop(body, {
-      requestId,
-    });
+    const shopData = await registerShop(body, { requestId });
 
-    return NextResponse.json(result);
+    await log("REGISTER_SUCCESS", { shop: shopData.name }, requestId, "info","register-shop");
+
+    return NextResponse.json({ success: true, shop: shopData });
   } catch (err) {
-    const status = err instanceof AppError ? err.status : 500;
+    const errorMsg = err instanceof AppError ? err.message : "Server error";
 
+     
     await log(
       "REGISTER_ERROR",
       { message: err.message },
@@ -37,8 +27,8 @@ export async function POST(req) {
     );
 
     return NextResponse.json(
-      { error: err.message },
-      { status }
+      { success: false, error: errorMsg },
+      { status: err.status || 500 }
     );
   }
 }
