@@ -1,14 +1,15 @@
-import "./globals.css";
-
+// app/layout.jsx
 export const metadata = {
-  title: "Toko Instan",
-  description: "Platform toko subdomain",
+  title: "My App",
+  description: "Next.js App",
 };
-/*tes*/
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="id">
-      <body>{children}</body>
+    <html lang="en">
+      <body>
+        {children} {/* semua page akan dirender di sini */}
+      </body>
     </html>
   );
 }
