@@ -1,78 +1,74 @@
+// app/api/register-shop/service.js
+
 import { firebaseGet, firebasePut } from "@/lib/firebase";
 import { log } from "@/lib/logger";
 import { validateSubdomain } from "@/lib/validators";
 import { fetchRetry } from "@/lib/fetch-retry";
 import { AppError } from "@/lib/errors";
 
+/**
+ * REGISTER SHOP SERVICE
+ * @param {Object} payload - { name, wa, email, subdomain, theme }
+ * @param {Object} ctx - { requestId }
+ */
 export async function registerShop(payload, ctx) {
   const { requestId } = ctx;
-  const { name, wa, email, subdomain, theme } =
-    payload;
+  const { name, wa, email, subdomain, theme } = payload;
 
-  if (
-    !name ||
-    !wa ||
-    !email ||
-    !subdomain ||
-    !theme
-  ) {
-    throw new AppError("Data tidak lengkap", 400);
+  // 1️⃣ VALIDASI INPUT LENGKAP
+  if (!name || !subdomain) {
+    throw new AppError("Nama toko dan subdomain wajib diisi", 400);
   }
 
   if (!validateSubdomain(subdomain)) {
     throw new AppError("Subdomain tidak valid", 400);
   }
 
-  const exists = await firebaseGet(
-    `shops/${subdomain}`
-  );
+  // 2️⃣ CEK SUBDOMAIN SUDAH ADA DI FIREBASE
+  const exists = await firebaseGet(`shops/${subdomain}`);
   if (exists) {
-    throw new AppError(
-      "Subdomain sudah digunakan",
-      409
-    );
+    throw new AppError("Subdomain sudah digunakan", 409);
   }
 
-  await log(
-    "CALL_APPS_SCRIPT",
-    { subdomain },
-    requestId
-  );
+  // 3️⃣ LOG: PANGGIL APPS SCRIPT
+  await log("CALL_APPS_SCRIPT", { subdomain }, requestId);
 
-  const res = await fetchRetry(
-    process.env.APPS_SCRIPT_URL,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "createSheet",
-        email,
-        shopName: name,
-        theme,
-        requestId,
-      }),
-    }
-  );
+  // 4️⃣ KIRIM DATA KE APPS SCRIPT
+  const res = await fetchRetry(process.env.APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name,
+      wa: wa || "",
+      email: email || "",
+      subdomain,
+      theme: theme || "food",
+      requestId,
+    }),
+  });
 
-  const json = await res.json();
-
-  if (!json.ok) {
-    throw new AppError(
-      json.error || "Apps Script gagal",
-      502
-    );
+  let json;
+  try {
+    json = await res.json();
+  } catch (err) {
+    throw new AppError("Response Apps Script tidak valid", 502);
   }
 
+  if (!json.success) {
+    throw new AppError(json.error || "Apps Script gagal", 502);
+  }
+
+  // 5️⃣ SIMPAN DATA TOKO KE FIREBASE
   const shopData = {
     name,
-    wa,
-    email,
+    wa: wa || "",
+    email: email || "",
     subdomain,
-    theme,
-    sheetId: json.sheetId,
-    sheetUrl: json.sheetUrl,
+    theme: theme || "food",
+    sheetId: json.sheetId || null,
+    sheetUrl: json.sheetUrl || null,
     active: true,
     createdAt: Date.now(),
     requestId,
@@ -80,16 +76,13 @@ export async function registerShop(payload, ctx) {
 
   await firebasePut(`shops/${subdomain}`, shopData);
 
-  await log(
-    "REGISTER_SUCCESS",
-    { subdomain },
-    requestId
-  );
+  // 6️⃣ LOG SUCCESS
+  await log("REGISTER_SUCCESS", { subdomain }, requestId);
 
+  // 7️⃣ RETURN DATA
   return {
     redirect: `https://${subdomain}.tokoinstan.online`,
-    sheetUrl: json.sheetUrl,
+    sheetUrl: json.sheetUrl || null,
     requestId,
   };
 }
-/*tes*/
