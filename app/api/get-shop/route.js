@@ -1,27 +1,26 @@
 import { NextResponse } from "next/server";
 import { getShopService } from "./service";
-import { AppError } from "@/lib/errors";
 
+/**
+ * GET /api/get-shop?shop=subdomain
+ */
 export async function GET(req) {
-  const requestId = crypto.randomUUID();
-
   try {
     const { searchParams } = new URL(req.url);
-    const subdomain = searchParams.get("shop");
+    const shop = searchParams.get("shop");
 
-    const result = await getShopService(subdomain, { requestId });
+    const result = await getShopService(shop);
 
     return NextResponse.json(result);
   } catch (err) {
-    const status = err instanceof AppError ? err.status : 500;
+    console.error("[GET-SHOP ROUTE ERROR]", err.message);
 
     return NextResponse.json(
       {
         success: false,
         error: err.message || "Internal Server Error",
-        requestId,
       },
-      { status }
+      { status: 500 }
     );
   }
 }
