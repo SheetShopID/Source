@@ -9,7 +9,7 @@ export async function getShopService(subdomain, ctx) {
   const { requestId } = ctx;
 
   /* ------------------------------------------------------------------
-   * 1️⃣ VALIDASI INPUT
+   * 1️⃣ VALIDASI INPUTS
    * ------------------------------------------------------------------ */
   if (!subdomain) {
     throw new AppError("Parameter shop wajib diisi", 400);
@@ -97,3 +97,4 @@ export async function getShopService(subdomain, ctx) {
     requestId,
   };
 }
+
